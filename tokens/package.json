@@ -1,0 +1,8 @@
+{
+  "name": "encode-tokens",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "balances": "npx ts-node balance.ts"
+  }
+}

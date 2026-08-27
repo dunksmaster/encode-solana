@@ -1,0 +1,17 @@
+{
+  "cluster": "devnet",
+  "tokens": {
+    "token1": {
+      "mint": "APZWUxbqLkVxBomyKW4K11jFLj7jqrAakGndRiQqPXZc",
+      "ownerTokenAccount": "8zTRHZ8KytDwppTQvSHAWgCFUraqLE38oij38gDiub1v",
+      "decimals": 9,
+      "createMintTx": "4hJ16aJQDEyTLAuSfdqLUw1QGgVxqv4DtaSbN9gZCZ9N1zfxk2apP8Li7yrY6vh3HTxdeuUNZTtPqXXMAgX9tB1n",
+      "mintSupplyTx": "39c2V9XKg6G5vEEoFKJWv2ezj2aRdiRyEJVN7Nq4njVuWWnJcJPLSNpp4yT9czMEuRp2AFaNrWWw8vPubJVSAXvP",
+      "transferTx": "3KhjE7kpPW5jcoPHmeS9xsfVDgCrinKSvVKp38jMPGqFcQxVBkWvohTkv8eren4nyRmxVqTKMzmXYiUr7MJu4GxR"
+    }
+  },
+  "wallets": {
+    "main": "5kyuXhe2qeRGvANAATZAG9n9nRZM4iyc768mcxrqcDDG",
+    "second": "DGyLWLXMJVKYDfD9rbrhszMG1rLyJiEvHsyM81KUvsW2"
+  }
+}
