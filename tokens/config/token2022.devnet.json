@@ -1,0 +1,25 @@
+{
+  "cluster": "devnet",
+  "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+  "mint": "9EH8icESGWuNnNhCkpEN4z237ZnBWJChBQ784v2VgUAJ",
+  "decimals": 9,
+  "extensions": ["transferFeeConfig", "metadataPointer", "tokenMetadata"],
+  "transferFeeBasisPoints": 100,
+  "transferFeeMaximumFeeUi": 10,
+  "metadata": {
+    "name": "EncodeFeeCoin",
+    "symbol": "EFC",
+    "uri": "https://example.com/efc.json"
+  },
+  "accounts": {
+    "mainAta": "2QTwJxScdnypJUCWDkVz5cLhcAsyQ6Q18duU2dao2oM2",
+    "secondAta": "HTdHJLbGrYMFDkW5gqK2X7vkBiMaNhprBPFZDFq3DZn3"
+  },
+  "proof": {
+    "transferredUi": 100,
+    "secondBalanceUi": 99,
+    "withheldOnSecondRaw": "1000000000"
+  },
+  "createTx": "2r8N2ynGgmHzp2BgoaTL6j2mYp6mKbuZopDMxXppKrL1B2MvG8AEmXRPUNLn3qK2SwuMdJQJTj4N4vS961tSWgvL",
+  "transferTx": "5TxG2gUWqtFCG3Zqvb1PmqWn3RbA3VFDYL9AU23EgHhY79rJp8qvCaG7HdL74AfvcjkJicYmUMBsVCLyb2Jh1jF"
+}
