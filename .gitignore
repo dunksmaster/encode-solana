@@ -3,3 +3,6 @@
 **/.anchor/
 .DS_Store
 
+
+keys/
+**/*-keypair.json

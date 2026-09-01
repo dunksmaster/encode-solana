@@ -62,3 +62,5 @@ Accounts, programs, PDAs, tokens, transaction lifecycle. No build.
 - Solana CLI 4.2.1, Rust 1.98, Anchor 1.1.2, Node 22.23.2, spl-token-cli 5.5.0
 - Wallet keypair is not in this repo
 
+
+Program deploy keypairs live only on this machine at ~/encode-solana-keys/ (never commit them).
