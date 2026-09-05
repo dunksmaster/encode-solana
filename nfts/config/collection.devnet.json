@@ -1,0 +1,31 @@
+{
+  "cluster": "devnet",
+  "rpc": "https://api.devnet.solana.com",
+  "collection": {
+    "name": "Encode Week5 Collection",
+    "mint": "DFqN7fj7pXJkdD7vEBTC8YU6CqDcC1b4YpoV6EUtGjUd",
+    "uri": "https://gateway.irys.xyz/BLQ8F6TFN7mW1NTNvrsTWN4V34Mq76guGQDASUX4vH2C"
+  },
+  "members": [
+    {
+      "name": "Encode Member #1",
+      "mint": "9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ",
+      "uri": "https://gateway.irys.xyz/6HSPM9Vjd3u1z5BCVuS5tvxSk3wGXxyGeyrya6JRFPnP",
+      "verified": true
+    },
+    {
+      "name": "Encode Member #2",
+      "mint": "YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ",
+      "uri": "https://gateway.irys.xyz/7xm5JVjbSLaEYDDX4SAPbZSysnpTg6m9yGVTPmV2arJW",
+      "verified": true
+    },
+    {
+      "name": "Encode Member #3",
+      "mint": "3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp",
+      "uri": "https://gateway.irys.xyz/D4XWSDiaC2yB1RBcKmqZ1kBd7G3FbmyVRxG9qpPZsJJC",
+      "verified": true
+    }
+  ],
+  "explorerBase": "https://explorer.solana.com",
+  "createdAt": "2026-09-01T23:47:36.402Z"
+}

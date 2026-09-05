@@ -1,8 +1,8 @@
 **/node_modules/
 **/target/
 **/.anchor/
+**/dist/
 .DS_Store
-
 
 keys/
 **/*-keypair.json

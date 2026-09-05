@@ -1,0 +1,20 @@
+{
+  "name": "Encode Member #3",
+  "symbol": "ENCW5",
+  "description": "Third member NFT in the Encode Week 5 collection.",
+  "image": "https://picsum.photos/seed/encode3/400",
+  "attributes": [
+    {
+      "trait_type": "Member",
+      "value": "3"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Earth"
+    }
+  ]
+}

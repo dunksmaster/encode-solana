@@ -1,0 +1,25 @@
+{
+  "name": "Encode Week5 Collection",
+  "symbol": "ENCW5",
+  "description": "Encode Solana Week 5 Exercise 10 parent collection NFT for Dorian Kane.",
+  "image": "https://picsum.photos/seed/encode-collection/400",
+  "external_url": "https://github.com/dunksmaster/encode-solana",
+  "attributes": [
+    {
+      "trait_type": "Type",
+      "value": "Collection"
+    },
+    {
+      "trait_type": "Course",
+      "value": "Encode Solana"
+    },
+    {
+      "trait_type": "Week",
+      "value": "5"
+    },
+    {
+      "trait_type": "Exercise",
+      "value": "10"
+    }
+  ]
+}

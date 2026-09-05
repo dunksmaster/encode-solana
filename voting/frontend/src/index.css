@@ -1,0 +1,60 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: #e8eef7;
+  background: #0b1220;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+#root { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
+.sub { color: #9db0c9; margin-bottom: 1.5rem; }
+.card {
+  background: #121a2b;
+  border: 1px solid #24314a;
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+.row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+label { display: block; font-size: 0.85rem; color: #9db0c9; margin-bottom: 0.35rem; }
+input {
+  background: #0b1220;
+  border: 1px solid #31415f;
+  color: #e8eef7;
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+button, .wallet-adapter-button {
+  cursor: pointer;
+}
+button.action {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+}
+button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secondary {
+  background: transparent;
+  color: #c7d5ea;
+  border: 1px solid #31415f;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+}
+.kv { display: grid; grid-template-columns: 120px 1fr; gap: 0.35rem 0.75rem; }
+.kv span:nth-child(odd) { color: #9db0c9; }
+.status { margin-top: 0.75rem; font-size: 0.95rem; }
+.status.err { color: #f87171; }
+.status.ok { color: #4ade80; }
+.status.pending { color: #fbbf24; }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  font-size: 0.8rem;
+}

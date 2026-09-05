@@ -1,0 +1,21 @@
+[toolchain]
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.devnet]
+escrow = "4oeN2qh93F6VFKrrQZ3R89HxRDwsyid26Jxyyq44KHTr"
+
+[programs.localnet]
+escrow = "4oeN2qh93F6VFKrrQZ3R89HxRDwsyid26Jxyyq44KHTr"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+
+[hooks]

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+*.pem
+id.json
+**/id.json
+.DS_Store
