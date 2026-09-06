@@ -1,0 +1,121 @@
+{
+  "address": "4oeN2qh93F6VFKrrQZ3R89HxRDwsyid26Jxyyq44KHTr",
+  "metadata": {
+    "name": "escrow",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Vendored IDL for the Week 5 escrow program (escrow/target/idl is gitignored)"
+  },
+  "instructions": [
+    {
+      "name": "make",
+      "discriminator": [138, 227, 232, 77, 223, 166, 96, 197],
+      "accounts": [
+        { "name": "maker", "writable": true, "signer": true },
+        { "name": "mint_a" },
+        { "name": "mint_b" },
+        { "name": "maker_ata_a", "writable": true },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              { "kind": "const", "value": [101, 115, 99, 114, 111, 119] },
+              { "kind": "account", "path": "maker" },
+              { "kind": "arg", "path": "id" }
+            ]
+          }
+        },
+        { "name": "vault", "writable": true },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        { "name": "id", "type": "u64" },
+        { "name": "deposit_amount", "type": "u64" },
+        { "name": "receive_amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "take",
+      "discriminator": [149, 226, 52, 104, 6, 142, 230, 39],
+      "accounts": [
+        { "name": "taker", "writable": true, "signer": true },
+        { "name": "maker", "writable": true },
+        { "name": "escrow", "writable": true },
+        { "name": "mint_a" },
+        { "name": "mint_b" },
+        { "name": "vault", "writable": true },
+        { "name": "taker_ata_a", "writable": true },
+        { "name": "taker_ata_b", "writable": true },
+        { "name": "maker_ata_b", "writable": true },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel",
+      "discriminator": [232, 219, 223, 41, 219, 236, 220, 190],
+      "accounts": [
+        { "name": "maker", "writable": true, "signer": true },
+        { "name": "escrow", "writable": true },
+        { "name": "mint_a" },
+        { "name": "maker_ata_a", "writable": true },
+        { "name": "vault", "writable": true },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Escrow",
+      "discriminator": [31, 213, 123, 187, 186, 22, 218, 155]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "Unauthorized", "msg": "Unauthorized" },
+    { "code": 6001, "name": "InvalidAmount", "msg": "Invalid amount" }
+  ],
+  "types": [
+    {
+      "name": "Escrow",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "maker", "type": "pubkey" },
+          { "name": "mint_a", "type": "pubkey" },
+          { "name": "mint_b", "type": "pubkey" },
+          { "name": "deposit_amount", "type": "u64" },
+          { "name": "receive_amount", "type": "u64" },
+          { "name": "id", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    }
+  ]
+}
