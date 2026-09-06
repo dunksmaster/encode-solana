@@ -7,7 +7,7 @@ import {
   FRESHNESS_MAX_AGE_SECONDS,
   JUPITER_QUOTE_URL,
   MAINNET,
-  mainnetRpcUrl,
+  mainnetRpcCandidates,
 } from "./config";
 
 export type PythQuote = {
@@ -27,10 +27,11 @@ export type JupiterQuote = {
 };
 
 export type QuoteSnapshot = {
-  pyth: PythQuote;
-  jupiter: JupiterQuote;
-  spreadPct: number;
-  spreadBps: number;
+  pyth: PythQuote | null;
+  jupiter: JupiterQuote | null;
+  spreadPct: number | null;
+  spreadBps: number | null;
+  errors: string[];
 };
 
 type JupiterQuoteResponse = {
@@ -80,24 +81,37 @@ export function parsePriceUpdateV2Account(data: Uint8Array): {
 }
 
 export async function fetchPythOnChain(): Promise<PythQuote> {
-  const connection = new Connection(mainnetRpcUrl(), "confirmed");
   const accountPk = new PublicKey(MAINNET.PYTH_SOL_USD_PRICE_ACCOUNT);
-  const info = await connection.getAccountInfo(accountPk);
-  if (!info?.data) {
-    throw new Error(`Pyth on-chain account missing: ${MAINNET.PYTH_SOL_USD_PRICE_ACCOUNT}`);
+  const endpoints = mainnetRpcCandidates();
+  let lastError: unknown;
+
+  for (const rpc of endpoints) {
+    try {
+      const connection = new Connection(rpc, "confirmed");
+      const info = await connection.getAccountInfo(accountPk);
+      if (!info?.data) {
+        throw new Error(`Pyth on-chain account missing: ${MAINNET.PYTH_SOL_USD_PRICE_ACCOUNT}`);
+      }
+
+      const parsed = parsePriceUpdateV2Account(Uint8Array.from(info.data));
+      const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000 - parsed.publishTime));
+      const host = new URL(rpc).host;
+
+      return {
+        price: parsed.price,
+        conf: parsed.conf,
+        publishTime: parsed.publishTime,
+        ageSeconds,
+        source: `on-chain push ${MAINNET.PYTH_SOL_USD_PRICE_ACCOUNT.slice(0, 8)}… via ${host}`,
+        fresh: ageSeconds <= FRESHNESS_MAX_AGE_SECONDS,
+      };
+    } catch (err) {
+      lastError = err;
+    }
   }
 
-  const parsed = parsePriceUpdateV2Account(Uint8Array.from(info.data));
-  const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000 - parsed.publishTime));
-
-  return {
-    price: parsed.price,
-    conf: parsed.conf,
-    publishTime: parsed.publishTime,
-    ageSeconds,
-    source: `on-chain push ${MAINNET.PYTH_SOL_USD_PRICE_ACCOUNT.slice(0, 8)}…`,
-    fresh: ageSeconds <= FRESHNESS_MAX_AGE_SECONDS,
-  };
+  const msg = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`Pyth on-chain read failed on all RPCs: ${msg}`);
 }
 
 export async function fetchJupiterSolUsdcQuote(): Promise<JupiterQuote> {
@@ -138,16 +152,30 @@ export function computeSpreadPct(pyth: number, jupiter: number): number {
 }
 
 export async function fetchQuoteSnapshot(): Promise<QuoteSnapshot> {
-  const [pyth, jupiter] = await Promise.all([
+  const errors: string[] = [];
+  const [pythResult, jupiterResult] = await Promise.allSettled([
     fetchPythOnChain(),
     fetchJupiterSolUsdcQuote(),
   ]);
-  const spreadPct = computeSpreadPct(pyth.price, jupiter.impliedPrice);
+
+  const pyth = pythResult.status === "fulfilled" ? pythResult.value : null;
+  const jupiter = jupiterResult.status === "fulfilled" ? jupiterResult.value : null;
+  if (pythResult.status === "rejected") {
+    errors.push(pythResult.reason instanceof Error ? pythResult.reason.message : String(pythResult.reason));
+  }
+  if (jupiterResult.status === "rejected") {
+    errors.push(jupiterResult.reason instanceof Error ? jupiterResult.reason.message : String(jupiterResult.reason));
+  }
+
+  const spreadPct =
+    pyth && jupiter ? computeSpreadPct(pyth.price, jupiter.impliedPrice) : null;
+
   return {
     pyth,
     jupiter,
     spreadPct,
-    spreadBps: spreadPct * 100,
+    spreadBps: spreadPct === null ? null : spreadPct * 100,
+    errors,
   };
 }
 

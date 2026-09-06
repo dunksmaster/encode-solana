@@ -20,6 +20,15 @@ export const JUPITER_QUOTE_URL = "https://lite-api.jup.ag/swap/v1/quote";
 /** Warn / fail freshness if Pyth publish_time is older than this (deck: >30s). */
 export const FRESHNESS_MAX_AGE_SECONDS = 30;
 
-export function mainnetRpcUrl(): string {
-  return import.meta.env.VITE_SOLANA_MAINNET_RPC ?? "https://api.mainnet-beta.solana.com";
+/**
+ * Public mainnet RPCs for the keyless Pyth push-account read.
+ * Official `api.mainnet-beta.solana.com` often returns 403 from browsers.
+ */
+export function mainnetRpcCandidates(): string[] {
+  const override = import.meta.env.VITE_SOLANA_MAINNET_RPC?.trim();
+  return [
+    ...(override ? [override] : []),
+    "https://solana-rpc.publicnode.com",
+    "https://api.mainnet-beta.solana.com",
+  ];
 }

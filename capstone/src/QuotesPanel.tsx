@@ -9,8 +9,10 @@ type Props = {
 };
 
 export function QuotesPanel({ snapshot, error, loading, onRefresh }: Props) {
-  const pyth = snapshot?.pyth;
+  const pyth = snapshot?.pyth ?? null;
+  const jupiter = snapshot?.jupiter ?? null;
   const fresh = pyth?.fresh ?? false;
+  const panelError = error || snapshot?.errors.join(" · ") || null;
 
   return (
     <div className="card">
@@ -23,7 +25,7 @@ export function QuotesPanel({ snapshot, error, loading, onRefresh }: Props) {
       <p className="sub" style={{ marginBottom: "0.75rem" }}>
         Pyth SOL/USD (mainnet push account) vs Jupiter SOL→USDC. Quote only — no swap.
       </p>
-      {error && <div className="status err">{error}</div>}
+      {panelError && <div className="status err">{panelError}</div>}
       {pyth && (
         <div className="kv">
           <span>Pyth SOL/USD</span>
@@ -43,17 +45,17 @@ export function QuotesPanel({ snapshot, error, loading, onRefresh }: Props) {
           <span>{pyth.source}</span>
         </div>
       )}
-      {snapshot && (
+      {jupiter && (
         <div className="kv" style={{ marginTop: "0.85rem" }}>
           <span>Jupiter SOL/USDC</span>
-          <span>${formatUsd(snapshot.jupiter.impliedPrice)} (for 1 SOL)</span>
+          <span>${formatUsd(jupiter.impliedPrice)} (for 1 SOL)</span>
           <span>Impact</span>
-          <span>{snapshot.jupiter.priceImpactPct ?? "—"}%</span>
+          <span>{jupiter.priceImpactPct ?? "—"}%</span>
           <span>Spread vs Pyth</span>
           <span>
-            {Math.abs(snapshot.spreadPct).toFixed(3)}% (
-            {snapshot.spreadBps >= 0 ? "+" : ""}
-            {snapshot.spreadBps.toFixed(1)} bps)
+            {snapshot && snapshot.spreadPct !== null && snapshot.spreadBps !== null
+              ? `${Math.abs(snapshot.spreadPct).toFixed(3)}% (${snapshot.spreadBps >= 0 ? "+" : ""}${snapshot.spreadBps.toFixed(1)} bps)`
+              : "—"}
           </span>
         </div>
       )}

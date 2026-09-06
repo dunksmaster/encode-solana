@@ -73,7 +73,7 @@ npm install
 npm run build
 ```
 
-Optional: set `VITE_SOLANA_MAINNET_RPC` to a public mainnet RPC if the default Pyth account read is rate-limited. No API keys or secrets are required.
+Pyth is read from the sponsored mainnet push account (no `PYTH_API_KEY`). The desk tries `solana-rpc.publicnode.com` first because official `api.mainnet-beta.solana.com` often returns **403 from browsers**. Override with `VITE_SOLANA_MAINNET_RPC` if needed. No secrets.
 
 ## What to demo
 
