@@ -1,11 +1,11 @@
 # Encode Solana — where we are
 
-Last updated: 5 September 2026 (Europe/Budapest)
+Last updated: 6 September 2026 (Europe/Budapest)
 
 Dorian Kane. Encode Solana Developer Course (6 weeks, 10 builds + capstone, all on **devnet**).
-Work lives in WSL Ubuntu at `~/encode-solana`.
+Work lives in WSL Ubuntu at `~/encode-solana`. **GitHub now has Weeks 1–5.**
 
-**Progress: ~91% of builds** (10/11). Weeks 1–5 complete. **Week 6 capstone unlocks 7 September 2026 (00:00 BST).**
+**Progress: ~91% of builds** (10/11). Weeks 1–5 complete. **Week 6 capstone scaffold started (Idea A — Quoted Escrow Desk).** Official brief unlocks **7 September 2026 (00:00 BST).**
 
 Main wallet: `5kyuXhe2qeRGvANAATZAG9n9nRZM4iyc768mcxrqcDDG`
 
@@ -59,9 +59,16 @@ Accounts, programs, PDAs, tokens, transaction lifecycle. No build.
 - Collection: `DFqN7fj7pXJkdD7vEBTC8YU6CqDcC1b4YpoV6EUtGjUd`
 - Members: `9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ`, `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ`, `3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp`
 
+## In progress
+
+### Week 6 — Capstone scaffold (Idea A)
+- Path: `capstone/` (see also `CAPSTONE-IDEAS.md`)
+- Combines escrow program `4oeN2qh93F6VFKrrQZ3R89HxRDwsyid26Jxyyq44KHTr` + `defi-quotes/` + `voting/frontend/` Phantom UI
+- Official brief still locked until **7 Sep 2026**; Explorer demo tx links TBD after first live Make / Take / Cancel
+
 ## Still missing
 
-1. **Week 6 — Capstone** (unlocks 7 Sep 2026): combine 3+ prior builds, README, Explorer proofs
+1. **Week 6 — Capstone finish** (brief unlocks 7 Sep 2026): live demo txs, Explorer proofs, any brief-specific extras
 2. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
 
 ## Toolchain
