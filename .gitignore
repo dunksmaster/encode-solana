@@ -6,3 +6,8 @@
 
 keys/
 **/*-keypair.json
+
+# Spec Kit / Cursor agent (keep skills; ignore local agent junk)
+.cursor/*
+!.cursor/skills/
+!.cursor/skills/**
