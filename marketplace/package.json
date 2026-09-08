@@ -2,6 +2,8 @@
   "name": "marketplace",
   "license": "ISC",
   "scripts": {
+    "build": "cargo-build-sbf --arch v3 --manifest-path programs/marketplace/Cargo.toml",
+    "test": "bash scripts/test-localnet.sh",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },

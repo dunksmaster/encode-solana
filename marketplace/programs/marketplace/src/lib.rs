@@ -26,7 +26,7 @@ pub mod marketplace {
 
         token::transfer(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.token_program.key(),
                 Transfer {
                     from: ctx.accounts.seller_ata.to_account_info(),
                     to: ctx.accounts.vault.to_account_info(),
@@ -60,7 +60,7 @@ pub mod marketplace {
 
         system_program::transfer(
             CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.system_program.key(),
                 system_program::Transfer {
                     from: ctx.accounts.buyer.to_account_info(),
                     to: ctx.accounts.seller.to_account_info(),
@@ -71,7 +71,7 @@ pub mod marketplace {
 
         token::transfer(
             CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.token_program.key(),
                 Transfer {
                     from: ctx.accounts.vault.to_account_info(),
                     to: ctx.accounts.buyer_ata.to_account_info(),
@@ -83,7 +83,7 @@ pub mod marketplace {
         )?;
 
         token::close_account(CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.token_program.key(),
             CloseAccount {
                 account: ctx.accounts.vault.to_account_info(),
                 destination: ctx.accounts.seller.to_account_info(),
@@ -118,7 +118,7 @@ pub mod marketplace {
 
         token::transfer(
             CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.token_program.key(),
                 Transfer {
                     from: ctx.accounts.vault.to_account_info(),
                     to: ctx.accounts.seller_ata.to_account_info(),
@@ -130,7 +130,7 @@ pub mod marketplace {
         )?;
 
         token::close_account(CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.token_program.key(),
             CloseAccount {
                 account: ctx.accounts.vault.to_account_info(),
                 destination: ctx.accounts.seller.to_account_info(),

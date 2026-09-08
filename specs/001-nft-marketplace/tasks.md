@@ -128,7 +128,7 @@
 
 - [x] T019 [P] Write `marketplace/README.md` (architecture, localnet/Devnet runbook, trade-offs, Explorer placeholder)
 - [x] T020 [P] Update `WHERE-WE-ARE.md` and `docs/capstone/OPTION2-PLAN.md` for plan + program-in-progress
-- [ ] T021 Run `marketplace/` build + the six tests per [quickstart.md](./quickstart.md); do not commit keypairs
+- [x] T021 Run `marketplace/` build + the six tests per [quickstart.md](./quickstart.md); do not commit keypairs
 
 ---
 

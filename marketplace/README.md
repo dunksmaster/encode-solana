@@ -36,9 +36,14 @@ Buy and cancel release the vault with Anchor `CpiContext::new_with_signer`
 cd marketplace
 npm install
 solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json   # if needed
-solana-test-validator --reset    # other terminal
-anchor test --skip-local-validator
-# or: anchor test
+
+# Terminal 1 — Agave 4.2 localnet (SIMD-0500: SBPF v3 only)
+solana-test-validator --reset
+
+# Terminal 2
+npm test
+# same as: cargo-build-sbf --arch v3 && deploy && mocha
+# Anchor 1.1 `anchor test` defaults to Surfpool (not required here).
 ```
 
 Six mocha tests (constitution Principle III):

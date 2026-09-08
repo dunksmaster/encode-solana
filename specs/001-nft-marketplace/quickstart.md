@@ -33,8 +33,9 @@ Confirm `declare_id!` in `programs/marketplace/src/lib.rs` matches
 
 ```bash
 cd marketplace
-solana-test-validator --reset   # separate terminal, if not already running
-anchor test --skip-local-validator   # or: anchor test
+# Terminal 1: solana-test-validator --reset
+# Agave 4.2 localnet accepts SBPF v3 only (SIMD-0500); npm test builds --arch v3.
+npm test
 ```
 
 `Anchor.toml` `[scripts] test` uses `ts-mocha` on `tests/**/*.ts`, same
