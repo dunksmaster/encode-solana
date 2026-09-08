@@ -1,11 +1,13 @@
 # Encode Solana — where we are
 
-Last updated: 6 September 2026 (Europe/Budapest)
+Last updated: 8 September 2026 (Europe/Budapest)
 
 Dorian Kane. Encode Solana Developer Course (6 weeks, 10 builds + capstone, all on **devnet**).
 Work lives in WSL Ubuntu at `~/encode-solana`. **GitHub now has Weeks 1–5.**
 
-**Progress: ~91% of builds** (10/11). Weeks 1–5 complete. **Week 6 capstone scaffold started (Idea A — Quoted Escrow Desk).** Official brief unlocks **7 September 2026 (00:00 BST).**
+**Progress: ~91% of builds** (10/11). Weeks 1–5 complete. **Week 6 official
+path is Option 2 — NFT Marketplace** (spec only; not implemented). Quoted
+Escrow Desk in `capstone/` is a prior experiment.
 
 Main wallet: `5kyuXhe2qeRGvANAATZAG9n9nRZM4iyc768mcxrqcDDG`
 
@@ -61,14 +63,17 @@ Accounts, programs, PDAs, tokens, transaction lifecycle. No build.
 
 ## In progress
 
-### Week 6 — Capstone scaffold (Idea A)
-- Path: `capstone/` (see also `CAPSTONE-IDEAS.md`)
-- Combines escrow program `4oeN2qh93F6VFKrrQZ3R89HxRDwsyid26Jxyyq44KHTr` + `defi-quotes/` + `voting/frontend/` Phantom UI
-- Official brief still locked until **7 Sep 2026**; Explorer demo tx links TBD after first live Make / Take / Cancel
+### Week 6 — Capstone Option 2 (NFT Marketplace) — spec in progress
+- Constitution: `.specify/memory/constitution.md` (v1.0.0)
+- Feature spec: `specs/001-nft-marketplace/` (list / buy / cancel with escrow)
+- Agreed plan: `docs/capstone/OPTION2-PLAN.md`
+- New program + desk will live in `marketplace/` (not started)
+- `capstone/` Quoted Escrow Desk stays as the pre-brief Idea A experiment
+- Next: `/speckit-plan` then Superdesign — do not implement yet
 
 ## Still missing
 
-1. **Week 6 — Capstone finish** (brief unlocks 7 Sep 2026): live demo txs, Explorer proofs, any brief-specific extras
+1. **Week 6 — Option 2 NFT Marketplace**: plan + Superdesign + program/UI + six tests + Explorer proofs
 2. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
 
 ## Toolchain
