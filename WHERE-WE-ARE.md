@@ -1,13 +1,14 @@
 # Encode Solana — where we are
 
-Last updated: 8 September 2026 (Europe/Budapest)
+Last updated: 8 September 2026 (Europe/Budapest) — plan + marketplace program
 
 Dorian Kane. Encode Solana Developer Course (6 weeks, 10 builds + capstone, all on **devnet**).
 Work lives in WSL Ubuntu at `~/encode-solana`. **GitHub now has Weeks 1–5.**
 
-**Progress: ~91% of builds** (10/11). Weeks 1–5 complete. **Week 6 official
-path is Option 2 — NFT Marketplace** (spec only; not implemented). Quoted
-Escrow Desk in `capstone/` is a prior experiment.
+**Progress: ~93% of builds** (10/11). Weeks 1–5 complete. **Week 6 official
+path is Option 2 — NFT Marketplace**: spec + plan done; Anchor program +
+six tests in `marketplace/`. React desk is next. Quoted Escrow Desk in
+`capstone/` is a prior experiment.
 
 Main wallet: `5kyuXhe2qeRGvANAATZAG9n9nRZM4iyc768mcxrqcDDG`
 
@@ -63,17 +64,22 @@ Accounts, programs, PDAs, tokens, transaction lifecycle. No build.
 
 ## In progress
 
-### Week 6 — Capstone Option 2 (NFT Marketplace) — spec in progress
+### Week 6 — Capstone Option 2 (NFT Marketplace) — program in progress
 - Constitution: `.specify/memory/constitution.md` (v1.0.0)
-- Feature spec: `specs/001-nft-marketplace/` (list / buy / cancel with escrow)
-- Agreed plan: `docs/capstone/OPTION2-PLAN.md`
-- New program + desk will live in `marketplace/` (not started)
+- Feature spec + plan: `specs/001-nft-marketplace/` (`plan.md`, `research.md`,
+  `data-model.md`, `contracts/`, `quickstart.md`, `tasks.md`)
+- Agreed product plan: `docs/capstone/OPTION2-PLAN.md`
+- Anchor program: `marketplace/` — `list_nft` / `buy_nft` / `cancel_listing`
+  — program ID `6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt`
+- Six mocha tests in `marketplace/tests/marketplace.ts` (localnet default)
+- Superdesign purple desk is design-locked; **React not started**
 - `capstone/` Quoted Escrow Desk stays as the pre-brief Idea A experiment
-- Next: `/speckit-plan` then Superdesign — do not implement yet
+- Next: merge program, then Vite + Phantom desk in `marketplace/frontend/`
 
 ## Still missing
 
-1. **Week 6 — Option 2 NFT Marketplace**: plan + Superdesign + program/UI + six tests + Explorer proofs
+1. **Week 6 — Option 2 NFT Marketplace**: Vite + Phantom desk (Superdesign
+   purple) + Devnet deploy + Explorer proofs (program + six tests exist)
 2. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
 
 ## Toolchain
