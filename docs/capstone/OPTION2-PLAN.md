@@ -3,8 +3,8 @@
 This is the agreed capstone plan for GitHub. Early local notes chose Idea A
 (Quoted Escrow Desk in `capstone/`). The official brief is **Option 2 — NFT
 Marketplace** (list / buy / cancel with escrow). Spec Kit artifacts live in
-`specs/001-nft-marketplace/`. Do not implement until `/speckit-plan` and a
-Superdesign canvas are done.
+`specs/001-nft-marketplace/`. The Anchor program lives in `marketplace/`.
+The Superdesign canvas is design-locked; React is the next slice.
 
 ## Product
 
@@ -77,7 +77,9 @@ Never commit private keys.
 
 ## Next actions
 
-1. `/speckit-plan` for `001-nft-marketplace`
-2. Superdesign canvas (approve before React)
-3. `/speckit-tasks`
-4. Implement (not this PR)
+1. ~~`/speckit-plan` for `001-nft-marketplace`~~ (done)
+2. Superdesign canvas is design-locked (purple crypto desk)
+3. ~~`/speckit-tasks`~~ (program tasks in `specs/001-nft-marketplace/tasks.md`)
+4. ~~Implement program + six tests~~ (this PR: `marketplace/`)
+5. **Next PR**: Vite + React + Phantom desk in `marketplace/frontend/`
+6. Devnet deploy + Explorer proofs in `marketplace/README.md`
