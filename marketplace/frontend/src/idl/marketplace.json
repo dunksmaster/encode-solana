@@ -1,0 +1,84 @@
+{
+  "address": "6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt",
+  "metadata": {
+    "name": "marketplace",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Hand-written IDL, transcribed field-for-field from marketplace/programs/marketplace/src/lib.rs. Not anchor-build output (SBPFv3 toolchain gap, TICKET-2) — regenerate with `anchor build` and diff against this file once that's fixed."
+  },
+  "instructions": [
+    {
+      "name": "list_nft",
+      "discriminator": [88, 221, 93, 166, 63, 220, 106, 232],
+      "accounts": [
+        { "name": "seller", "writable": true, "signer": true },
+        { "name": "mint" },
+        { "name": "seller_ata", "writable": true },
+        { "name": "listing", "writable": true },
+        { "name": "vault", "writable": true },
+        { "name": "associated_token_program" },
+        { "name": "token_program" },
+        { "name": "system_program" }
+      ],
+      "args": [{ "name": "price_lamports", "type": "u64" }]
+    },
+    {
+      "name": "buy_nft",
+      "discriminator": [96, 0, 28, 190, 49, 107, 83, 222],
+      "accounts": [
+        { "name": "buyer", "writable": true, "signer": true },
+        { "name": "seller", "writable": true },
+        { "name": "mint" },
+        { "name": "listing", "writable": true },
+        { "name": "vault", "writable": true },
+        { "name": "buyer_ata", "writable": true },
+        { "name": "associated_token_program" },
+        { "name": "token_program" },
+        { "name": "system_program" }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_listing",
+      "discriminator": [41, 183, 50, 232, 230, 233, 157, 70],
+      "accounts": [
+        { "name": "seller", "writable": true, "signer": true },
+        { "name": "mint" },
+        { "name": "listing", "writable": true },
+        { "name": "seller_ata", "writable": true },
+        { "name": "vault", "writable": true },
+        { "name": "associated_token_program" },
+        { "name": "token_program" },
+        { "name": "system_program" }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Listing",
+      "discriminator": [218, 32, 50, 73, 43, 134, 26, 58]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "InvalidPrice", "msg": "Price must be greater than zero lamports" },
+    { "code": 6001, "name": "InvalidNft", "msg": "Mint must be a 0-decimal NFT with amount 1" },
+    { "code": 6002, "name": "ListingInactive", "msg": "Listing is not active" },
+    { "code": 6003, "name": "Unauthorized", "msg": "Only the listing seller can cancel" }
+  ],
+  "types": [
+    {
+      "name": "Listing",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "seller", "type": "pubkey" },
+          { "name": "mint", "type": "pubkey" },
+          { "name": "price", "type": "u64" },
+          { "name": "bump", "type": "u8" },
+          { "name": "is_active", "type": "bool" }
+        ]
+      }
+    }
+  ]
+}
