@@ -1,13 +1,15 @@
 # Encode Solana — where we are
 
-Last updated: 8 September 2026 (Europe/Budapest) — plan + marketplace program
+Last updated: 12 September 2026 (Europe/Budapest) — Devnet deploy + Explorer proofs
 
 Dorian Kane. Encode Solana Developer Course (6 weeks, 10 builds + capstone, all on **devnet**).
-Work lives in WSL Ubuntu at `~/encode-solana`. **GitHub now has Weeks 1–5.**
+Work lives in WSL Ubuntu at `~/encode-solana`. **GitHub now has Weeks 1–5 + Week 6 program/frontend.**
 
-**Progress: ~93% of builds** (10/11). Weeks 1–5 complete. **Week 6 official
-path is Option 2 — NFT Marketplace**: spec + plan done; Anchor program +
-six tests in `marketplace/`. React desk is next. Quoted Escrow Desk in
+**Progress: ~93% of builds** (10/11), Week 6 capstone deployed to Devnet.
+Weeks 1–5 complete. **Week 6 official path is Option 2 — NFT Marketplace**:
+spec + plan done, Anchor program (7 tests, 6/7 passing locally — see
+`marketplace/README.md`), React/Phantom desk wired to list/buy/cancel, and
+now deployed live on Devnet with Explorer proofs. Quoted Escrow Desk in
 `capstone/` is a prior experiment.
 
 Main wallet: `5kyuXhe2qeRGvANAATZAG9n9nRZM4iyc768mcxrqcDDG`
@@ -62,27 +64,42 @@ Accounts, programs, PDAs, tokens, transaction lifecycle. No build.
 - Collection: `DFqN7fj7pXJkdD7vEBTC8YU6CqDcC1b4YpoV6EUtGjUd`
 - Members: `9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ`, `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ`, `3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp`
 
-## In progress
+## Done (continued)
 
-### Week 6 — Capstone Option 2 (NFT Marketplace) — program in progress
+### Week 6 — Capstone Option 2 (NFT Marketplace)
 - Constitution: `.specify/memory/constitution.md` (v1.0.0)
 - Feature spec + plan: `specs/001-nft-marketplace/` (`plan.md`, `research.md`,
   `data-model.md`, `contracts/`, `quickstart.md`, `tasks.md`)
 - Agreed product plan: `docs/capstone/OPTION2-PLAN.md`
 - Anchor program: `marketplace/` — `list_nft` / `buy_nft` / `cancel_listing`
-  — program ID `6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt`
-- Six mocha tests in `marketplace/tests/marketplace.ts` (localnet default)
-- Superdesign purple desk is design-locked; **React not started**
+- Desk: `marketplace/frontend/` — Vite + React + TS + wallet-adapter,
+  purple Superdesign theme, wired to all three instructions
+- **Deployed on Devnet** — program ID `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2`
+  (the originally-`declare_id!`'d `6pKDR...` keypair was correctly never
+  committed and no longer exists anywhere, so it was re-synced to a fresh
+  keypair actually held on this machine — see `marketplace/README.md`)
+- Explorer proofs (program + sample list/buy/cancel txs): `marketplace/README.md`
+- 7 mocha tests, 6 passing locally (`marketplace/tests/marketplace.ts`);
+  1 pre-existing test asserts a stale expected error code, not yet fixed
 - `capstone/` Quoted Escrow Desk stays as the pre-brief Idea A experiment
-- Next: merge program, then Vite + Phantom desk in `marketplace/frontend/`
 
 ## Still missing
 
-1. **Week 6 — Option 2 NFT Marketplace**: Vite + Phantom desk (Superdesign
-   purple) + Devnet deploy + Explorer proofs (program + six tests exist)
-2. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
+1. Fix the one pre-existing failing test (`wrong mint from buyer fails`
+   expects `ConstraintHasOne`, program correctly returns `ConstraintTokenMint`)
+2. Capstone hand-in polish / final review pass (`docs/capstone/CAPSTONE-TICKETS.md` TICKET-7)
+3. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
 
 ## Toolchain
 
-- Solana CLI 4.2.1, Rust 1.98, Anchor 1.1.2, Node 22.x, spl-token-cli 5.x
+- Solana CLI 4.2.2 (Agave, `agave-install init stable`), platform-tools v1.54
+  (needed for the SBPFv3 target — v1.52 doesn't have it), Rust 1.98 (host) /
+  1.89 (sbf), Anchor 1.1.2, Node 22.x (via nvm), spl-token-cli 5.x
+- **Known quirk**: every `anchor` CLI subcommand (`build`, `idl build`,
+  `program deploy`, `test`) silently reverts the active Solana release back
+  to an old pinned 3.1.10/v1.52 — breaks any SBPFv3 binary built around it.
+  `marketplace/scripts/test-localnet.sh` and `marketplace/README.md`'s
+  Devnet runbook work around this by calling `cargo-build-sbf` /
+  `solana program deploy` / `ts-mocha` directly and restoring the release
+  (`agave-install init stable`) around the two unavoidable `anchor` calls.
 - Deploy keypairs live only at `~/encode-solana-keys/` (and local `keys/` which is gitignored) — never commit them

@@ -5,8 +5,9 @@ the Option 2 home. `escrow/` stays the Exercise 8 token-escrow reference.
 `capstone/` stays the prior Quoted Escrow Desk experiment.
 
 The **React desk** (Superdesign purple: Connect, Home, List, Detail/Buy,
-My listings) is **not** in this slice. It will live in `frontend/` after
-the program merges.
+My listings) lives in `frontend/` — scaffolded and wired to `list_nft`,
+`buy_nft`, `cancel_listing` (TICKET-3/4/5). Deployed program is now live on
+Devnet (TICKET-6, see Explorer proofs below).
 
 ## Architecture
 
@@ -19,7 +20,7 @@ seller  --cancel_listing()--> NFT → seller; close vault+listing
 
 | Item | Value |
 | :--- | :--- |
-| Program ID | `6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt` |
+| Program ID (Devnet, live) | `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2` |
 | Instructions | `list_nft`, `buy_nft`, `cancel_listing` |
 | Listing fields | seller, mint, price, bump, `is_active` |
 | Payment | Native SOL only |
@@ -28,7 +29,12 @@ seller  --cancel_listing()--> NFT → seller; close vault+listing
 
 Buy and cancel release the vault with Anchor `CpiContext::new_with_signer`
 (`invoke_signed` as the listing PDA). See
-`specs/001-nft-marketplace/contracts/marketplace-program.md`.
+`specs/001-nft-marketplace/contracts/marketplace-program.md` — note its
+program ID (`6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt`) is now stale:
+that keypair was correctly never committed and no longer exists on any
+machine, so it was never deployable. `anchor keys sync` regenerated
+`declare_id!`/`Anchor.toml` against fresh, actually-held keypairs — one for
+localnet testing, a separate one (above) for this Devnet deploy.
 
 ## Localnet runbook
 
@@ -59,15 +65,13 @@ hit `can't find crate for std` / `sbpfv3-solana-solana target may not be
 installed`, that's this issue — run `agave-install init stable` again
 before rebuilding.
 
-**Program ID note:** the original deploy keypair for
-`6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt` was never committed (correct
-— private keys never go in git) and doesn't exist on this machine. Running
-`anchor keys sync` here regenerated `declare_id!` / `Anchor.toml`'s
-`[programs.localnet]` entry to a new locally-available keypair for
-**localnet testing only** — `[programs.devnet]` is untouched. A real Devnet
-deploy (TICKET-6) needs its own fresh keypair and will need the frontend's
-hardcoded program ID + `idl/marketplace.json` `address` field updated to
-match once that happens — not done as part of this fix.
+**Program ID note:** `declare_id!` is a single value compiled into the
+binary, so it can only match *one* deployed address at a time. The
+`[programs.localnet]` entry above (from TICKET-2) and the live Devnet ID
+(from TICKET-6, see Explorer proofs) are two different keypairs — rebuilding
+for localnet again means re-running `anchor keys sync` against the localnet
+keypair and rebuilding, which will move `declare_id!` away from the Devnet
+ID until you rebuild for Devnet again.
 
 Six mocha tests (constitution Principle III), plus a seventh added for the
 buyer-ATA fix:
@@ -88,9 +92,28 @@ authorities.
 ```bash
 # Wallet and upgrade key stay outside git:
 #   ~/encode-solana-keys/  or  keys/ (gitignored)
-anchor deploy --provider.cluster devnet
-anchor test --provider.cluster devnet
+
+# Fresh deploy keypair (never commit):
+solana-keygen new --no-bip39-passphrase -o ~/encode-solana-keys/marketplace-devnet-keypair.json
+cp ~/encode-solana-keys/marketplace-devnet-keypair.json marketplace/target/deploy/marketplace-keypair.json
+
+# Update declare_id! in programs/marketplace/src/lib.rs and
+# Anchor.toml's [programs.devnet] to that keypair's pubkey, then:
+agave-install init stable   # see toolchain note above — needed before every rebuild
+cargo-build-sbf --arch v3 --manifest-path programs/marketplace/Cargo.toml
+solana program deploy target/deploy/marketplace.so \
+  --program-id target/deploy/marketplace-keypair.json \
+  --url https://api.devnet.solana.com
+
+# IDL (used by tests and the frontend) — anchor idl build also reverts the
+# toolchain, so restore again after:
+anchor idl build -o target/idl/marketplace.json -t target/types/marketplace.ts
+agave-install init stable
 ```
+
+`anchor deploy` / `anchor test` were **not** used here — same toolchain-
+reverting issue as the localnet runbook (they silently downgrade the active
+Solana release mid-command, corrupting the just-built SBPFv3 binary).
 
 Demo listings should use Exercise 10 members:
 
@@ -105,14 +128,29 @@ Demo listings should use Exercise 10 members:
 - **Listing account is closed** on buy/cancel so the same seller can
   re-list the same mint. `is_active` is still stored and checked.
 - **SOL transfer is direct** buyer → seller (no wSOL vault).
-- **Frontend deferred** — Superdesign is design-locked; React is the
-  next PR.
+- **Devnet proof mints are throwaway test mints**, not the Exercise 10
+  collection — see the honesty note under Explorer proofs.
 
-## Explorer proofs (fill after first Devnet deploy)
+## Explorer proofs
 
-- Program: _pending deploy_
-- Sample `list_nft`: _pending_
-- Sample `buy_nft`: _pending_
-- Sample `cancel_listing`: _pending_
+Deployed and exercised on Devnet 2026-09-12. All four links are real,
+finalized Devnet transactions/accounts — verify by opening them.
+
+- Program: https://explorer.solana.com/address/DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2?cluster=devnet
+- Sample `list_nft`: https://explorer.solana.com/tx/2VP4XyLtnXAPMiQmJby4UpnPdPvrXEgTynY6hQ2juMa7hP6xW9TbcmPgEoUNfouQhK4eNqjdiZ4cQQXfGTQ39dhc?cluster=devnet
+- Sample `buy_nft`: https://explorer.solana.com/tx/jomrGKqc5hPDEp6vkjZ2PgUqGoVmYGehevQpsZxaJNuq3wFErbDpcMWFipYtoSY6jm9XZbkdmfJv6qG9GTC7TN1?cluster=devnet
+- Sample `cancel_listing` (separate listing from the buy, so cancel had
+  something open to close): https://explorer.solana.com/tx/26owMVcUwFd5ANtAGwqWGDbkNo5wBZY63Qu2HGyedNBUyGHf7FQVopLruTwAT9N6iELz8RDeKUVR1jbXcHzuqUwX?cluster=devnet
+- Its `list_nft` (opens the listing the cancel above closes): https://explorer.solana.com/tx/M7LjoTLL8JxomkjV5GW1oARzkZ3vCcsNWCZNRFKpbz5xAQtZAKYXE2WwoVxk69KtuBH8L4xtjKNBmDgn7LxivXF?cluster=devnet
+
+**Honesty note on the `buy_nft` sample:** the buyer wallet
+(`3mZCBeHC3kEVzQA3mTZxHtnRDd84CUkhHFxVJg3fw7Mf`) was funded with 0.05 SOL
+transferred from the seller wallet (Devnet airdrop was rate-limited at the
+time) — it's a genuinely different signer from the seller, so the
+transaction exercises the real two-party buy path, it just wasn't
+independently pre-funded via faucet. Mints used for these proofs are
+throwaway 0-decimal test mints created for this deploy, not the Exercise 10
+collection — a real demo walkthrough should use the Exercise 10 members
+listed above.
 
 Never commit private keys or `*-keypair.json`.

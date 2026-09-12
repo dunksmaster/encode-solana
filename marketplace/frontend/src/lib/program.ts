@@ -5,7 +5,7 @@ import type { Connection } from "@solana/web3.js";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 import idl from "../idl/marketplace.json";
 
-export const PROGRAM_ID = new PublicKey("6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt");
+export const PROGRAM_ID = new PublicKey("DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2");
 
 export type ListingAccount = {
   seller: PublicKey;
@@ -15,7 +15,7 @@ export type ListingAccount = {
   isActive: boolean;
 };
 
-/** Mirrors voting/frontend's provider/program construction. IDL is hand-written (see idl/marketplace.json header) — swap for the real `anchor build` output once TICKET-2 is fixed. */
+/** Mirrors voting/frontend's provider/program construction. IDL is the real `anchor idl build` output (target/idl/marketplace.json, copied in after the TICKET-6 Devnet deploy) — regenerate and re-copy if the program changes. */
 export function getProgram(connection: Connection, wallet: WalletContextState) {
   if (!wallet.publicKey || !wallet.signTransaction) return null;
   const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
