@@ -387,7 +387,7 @@ describe("marketplace", function () {
           })
           .signers([buyer])
           .rpc(),
-      "ConstraintHasOne"
+      "ConstraintTokenMint"
     );
 
     const stillOpen = await withRetry(

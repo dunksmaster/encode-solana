@@ -11,3 +11,5 @@ keys/
 .cursor/*
 !.cursor/skills/
 !.cursor/skills/**
+
+.superdesign/tmp/

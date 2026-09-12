@@ -9,7 +9,7 @@ skip-lint = false
 marketplace = "6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt"
 
 [programs.localnet]
-marketplace = "6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt"
+marketplace = "3nFN3HcYw2NTokcd2tU4vsw7WVgPHqyTQQZeR9rSnwWn"
 
 [provider]
 cluster = "localnet"

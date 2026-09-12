@@ -36,17 +36,41 @@ Buy and cancel release the vault with Anchor `CpiContext::new_with_signer`
 cd marketplace
 npm install
 solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json   # if needed
+agave-install init stable   # need platform-tools >= v1.54 for SBPFv3 (see below)
 
-# Terminal 1 — Agave 4.2 localnet (SIMD-0500: SBPF v3 only)
+# Terminal 1 — Agave 4.x localnet (SIMD-0500: SBPF v3 only)
 solana-test-validator --reset
 
 # Terminal 2
 npm test
-# same as: cargo-build-sbf --arch v3 && deploy && mocha
-# Anchor 1.1 `anchor test` defaults to Surfpool (not required here).
 ```
 
-Six mocha tests (constitution Principle III):
+**Toolchain note (found while fixing TICKET-2):** `npm test` does **not**
+call `anchor build` / `anchor program deploy` / `anchor test` — on this
+machine, `anchor-cli 1.1.2` has a side effect where every `anchor ...`
+subcommand silently reverts `~/.config/solana/install/config.yml`'s
+`explicit_release` back to an old pinned Solana CLI (3.1.10, platform-tools
+v1.52 — no `sbpfv3-solana-solana` rustlib target), breaking any SBPFv3
+binary built just before or after. `scripts/test-localnet.sh` instead calls
+`cargo-build-sbf`, `anchor idl build` (host target, needed for the IDL
+only), `solana program deploy`, and `npx ts-mocha` directly, restoring the
+release (`agave-install init stable`) around the two `anchor` calls. If you
+hit `can't find crate for std` / `sbpfv3-solana-solana target may not be
+installed`, that's this issue — run `agave-install init stable` again
+before rebuilding.
+
+**Program ID note:** the original deploy keypair for
+`6pKDRYpkfoAjL8nVDDLT6QrZFjX9yFeo4jBiSf1Ht4pt` was never committed (correct
+— private keys never go in git) and doesn't exist on this machine. Running
+`anchor keys sync` here regenerated `declare_id!` / `Anchor.toml`'s
+`[programs.localnet]` entry to a new locally-available keypair for
+**localnet testing only** — `[programs.devnet]` is untouched. A real Devnet
+deploy (TICKET-6) needs its own fresh keypair and will need the frontend's
+hardcoded program ID + `idl/marketplace.json` `address` field updated to
+match once that happens — not done as part of this fix.
+
+Six mocha tests (constitution Principle III), plus a seventh added for the
+buyer-ATA fix:
 
 1. List → Buy
 2. List → Cancel
@@ -54,6 +78,7 @@ Six mocha tests (constitution Principle III):
 4. Buy after cancel fails
 5. Non-seller cancel fails
 6. Wrong mint / inactive listing fails
+7. Buy with no pre-existing buyer ATA (TICKET-1)
 
 Tests mint local NFT-like tokens. They do not need Exercise 10 mint
 authorities.
