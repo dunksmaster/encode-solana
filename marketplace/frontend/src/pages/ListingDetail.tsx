@@ -4,7 +4,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
-import { getProgram, sellerAta, vaultAta, friendlyError, type ListingAccount } from "../lib/program";
+import { getProgram, sellerAta, buyerAta, vaultAta, friendlyError, type ListingAccount } from "../lib/program";
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
 
@@ -86,6 +86,39 @@ export default function ListingDetail() {
     }
   }
 
+  async function buy() {
+    if (!publicKey || !id) return;
+    const program = getProgram(connection, wallet);
+    if (!program) return;
+
+    setBusy(true);
+    setStatus({ kind: "pending", text: "Buying… waiting for wallet / confirmation" });
+    try {
+      const listingKey = new PublicKey(id);
+      const mintKey = current.mint;
+      const sig = await program.methods
+        .buyNft()
+        .accounts({
+          buyer: publicKey,
+          seller: current.seller,
+          mint: mintKey,
+          listing: listingKey,
+          vault: vaultAta(mintKey, listingKey),
+          buyerAta: buyerAta(mintKey, publicKey),
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      setStatus({ kind: "ok", text: "Bought: " + sig.slice(0, 12) + "…" });
+      await load();
+    } catch (err) {
+      setStatus({ kind: "err", text: friendlyError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div>
       <div className="card listing-card" style={{ maxWidth: 320 }}>
@@ -98,8 +131,8 @@ export default function ListingDetail() {
       <div className="card">
         <h3 style={{ marginTop: 0 }}>Actions</h3>
         <div style={{ display: "flex", gap: "0.6rem" }}>
-          <button className="primary" disabled title="Wired in TICKET-5">
-            Buy (not wired yet)
+          <button className="primary" disabled={isSeller || busy} onClick={buy}>
+            {busy ? "Buying…" : "Buy"}
           </button>
           <button className="danger" disabled={!isSeller || busy} onClick={cancel}>
             {busy ? "Cancelling…" : "Cancel"}

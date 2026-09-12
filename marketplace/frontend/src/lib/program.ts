@@ -37,6 +37,11 @@ export function sellerAta(mint: PublicKey, seller: PublicKey) {
   return getAssociatedTokenAddressSync(mint, seller);
 }
 
+/** Same derivation as sellerAta — buy_nft's buyer_ata is init_if_needed, so this address need not exist yet. */
+export function buyerAta(mint: PublicKey, buyer: PublicKey) {
+  return getAssociatedTokenAddressSync(mint, buyer);
+}
+
 export function friendlyError(err: any): string {
   const msg =
     err?.error?.errorMessage ||
