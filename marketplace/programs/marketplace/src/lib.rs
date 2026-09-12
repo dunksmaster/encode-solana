@@ -219,7 +219,8 @@ pub struct BuyNft<'info> {
     pub vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut,
+        init_if_needed,
+        payer = buyer,
         associated_token::mint = mint,
         associated_token::authority = buyer,
     )]

@@ -270,6 +270,28 @@ describe("marketplace", function () {
     await expectFail(() => program.account.listing.fetch(listing), "Account does not exist");
   });
 
+  it("Buy with no pre-existing buyer ATA: buyer_ata is created in the same tx", async () => {
+    const { mint, ata: sellerAta } = await createNft(seller.publicKey);
+    const { listing, vault } = await doList(mint, sellerAta);
+
+    // Deliberately do NOT call ensureAta() first — buyer has never held this mint.
+    const buyerAta = getAssociatedTokenAddressSync(mint, buyer.publicKey);
+    const preInfo = await withRetry(
+      () => connection.getAccountInfo(buyerAta),
+      "buyerAtaMissing"
+    );
+    assert.isNull(preInfo, "test setup: buyer_ata must not exist yet");
+
+    await doBuy(mint, listing, vault, buyerAta);
+
+    const buyerAtaAfter = await withRetry(
+      () => getAccount(connection, buyerAta),
+      "buyerAtaCreated"
+    );
+    assert.equal(buyerAtaAfter.amount.toString(), "1");
+    assert.ok(buyerAtaAfter.owner.equals(buyer.publicKey));
+  });
+
   it("List then Cancel: seller recovers NFT, listing closes", async () => {
     const { mint, ata: sellerAta } = await createNft(seller.publicKey);
     const { listing, vault } = await doList(mint, sellerAta);
