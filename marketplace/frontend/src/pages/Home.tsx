@@ -3,6 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import type { PublicKey } from "@solana/web3.js";
 import ListingCard from "../components/ListingCard";
 import { CATALOG } from "../lib/catalog";
+import { resolveEntry } from "../lib/nftMeta";
 import { friendlyError, getProgram } from "../lib/program";
 import { withRpcFailover } from "../lib/rpc";
 
@@ -74,10 +75,7 @@ export default function Home() {
       {wallet.connected && listings && listings.length > 0 && (
         <div className="grid">
           {listings.map((l) => {
-            const entry = CATALOG.find((c) => c.mint === l.mint.toBase58()) ?? {
-              mint: l.mint.toBase58(),
-              name: l.mint.toBase58().slice(0, 8) + "…",
-            };
+            const entry = resolveEntry(l.mint.toBase58(), CATALOG);
             return (
               <ListingCard
                 key={l.pda.toBase58()}

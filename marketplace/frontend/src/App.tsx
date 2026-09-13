@@ -5,6 +5,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import Shell from "./components/Shell";
 import Home from "./pages/Home";
+import CreateNft from "./pages/CreateNft";
 import ListCreate from "./pages/ListCreate";
 import ListingDetail from "./pages/ListingDetail";
 import Mine from "./pages/Mine";
@@ -36,6 +37,7 @@ export default function App() {
             <Shell>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/create" element={<CreateNft />} />
                 <Route path="/list" element={<ListCreate />} />
                 <Route path="/listing/:id" element={<ListingDetail />} />
                 <Route path="/mine" element={<Mine />} />

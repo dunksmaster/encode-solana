@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "@anchor-lang/core";
 import { PublicKey, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
+import { resolveEntry } from "../lib/nftMeta";
 import {
   listingPda,
   sellerAta,
@@ -15,6 +17,7 @@ import {
 import { isFailoverError, withRpcFailover } from "../lib/rpc";
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
+type OwnedMap = Record<string, boolean>;
 
 function parseMintAddress(value: string): PublicKey | null {
   try {
@@ -27,10 +30,12 @@ function parseMintAddress(value: string): PublicKey | null {
 export default function ListCreate() {
   const wallet = useWallet();
   const { connected, publicKey } = wallet;
+  const [searchParams] = useSearchParams();
   const [catalogMint, setCatalogMint] = useState(CATALOG[0]?.mint ?? "");
-  const [paste, setPaste] = useState("");
+  const [paste, setPaste] = useState(() => searchParams.get("mint") ?? "");
   const [price, setPrice] = useState("0.10");
-  const [owned, setOwned] = useState<Record<string, boolean>>({});
+  const [owned, setOwned] = useState<OwnedMap | null>(null);
+  const [checkingOwnership, setCheckingOwnership] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status>(null);
 
@@ -46,14 +51,16 @@ export default function ListCreate() {
     let cancelled = false;
     async function check() {
       if (!publicKey) {
-        setOwned({});
+        setOwned(null);
+        setCheckingOwnership(false);
         return;
       }
+      setCheckingOwnership(true);
       const mints = new Set(CATALOG.map((entry) => entry.mint));
       if (mint) mints.add(mint);
       try {
         const result = await withRpcFailover(async (rpc) => {
-          const next: Record<string, boolean> = {};
+          const next: OwnedMap = {};
           for (const candidate of mints) {
             try {
               const ata = sellerAta(new PublicKey(candidate), publicKey);
@@ -69,6 +76,8 @@ export default function ListCreate() {
         if (!cancelled) setOwned(result);
       } catch {
         if (!cancelled) setOwned({});
+      } finally {
+        if (!cancelled) setCheckingOwnership(false);
       }
     }
     check();
@@ -77,19 +86,36 @@ export default function ListCreate() {
     };
   }, [publicKey, mint]);
 
-  const ownsSelected = !!owned[mint];
+  // Once we know what the wallet actually holds, jump the catalog picker to
+  // an owned entry instead of leaving it stuck on one it doesn't own.
+  useEffect(() => {
+    if (!owned) return;
+    if (pasteActive) return;
+    if (owned[catalogMint]) return;
+    const firstOwned = CATALOG.find((entry) => owned[entry.mint]);
+    if (firstOwned) setCatalogMint(firstOwned.mint);
+  }, [owned, pasteActive, catalogMint]);
+
+  const ownedCatalogEntries = useMemo(
+    () => CATALOG.filter((entry) => owned?.[entry.mint]),
+    [owned]
+  );
+  const hasOwnershipData = owned !== null;
+  const ownsNothingInCatalog = hasOwnershipData && !checkingOwnership && ownedCatalogEntries.length === 0;
+  const ownsSelected = !!owned?.[mint];
   const canSubmit = connected && !pasteInvalid && ownsSelected && Number(price) > 0 && !busy;
+  const pastedEntry = pasteActive && !pasteInvalid ? resolveEntry(mint, CATALOG) : null;
 
   async function submit() {
     if (!publicKey) return;
     if (pasteInvalid) {
-      setStatus({ kind: "err", text: "Not a valid base58 PublicKey." });
+      setStatus({ kind: "err", text: "That doesn't look like a valid Devnet mint address." });
       return;
     }
     if (!ownsSelected) {
       setStatus({
         kind: "err",
-        text: "This wallet doesn't hold that mint — list would revert in Phantom (InvalidNft). Pick the Devnet test NFT or paste a mint you own.",
+        text: "This wallet doesn't hold that NFT yet, so Phantom would reject the listing. Pick one marked \"in your wallet\", or paste the address of an NFT you actually own.",
       });
       return;
     }
@@ -130,38 +156,69 @@ export default function ListCreate() {
       <div className="card">
         <h3 style={{ marginTop: 0 }}>List an NFT</h3>
         <p className="sub">
-          Connect a wallet, then list the default <em>Devnet test NFT</em> (or another
-          catalog mint you own), <em>or paste any Devnet mint address this wallet
-          owns</em>. The program accepts any mint your ATA holds — do not list an
-          Exercise 10 member you don't hold (Phantom will revert).
+          You can only list an NFT that's actually sitting in your connected wallet — the
+          program checks your token account on-chain before it accepts a listing. Pick one
+          below, or paste the mint address of any Devnet NFT you hold.
         </p>
 
-        <label>Mint (catalog — default is the seeded Devnet test NFT)</label>
-        <select
-          value={catalogMint}
-          onChange={(e) => setCatalogMint(e.target.value)}
-          disabled={!connected}
-          style={{
-            width: "100%",
-            padding: "0.55rem 0.7rem",
-            borderRadius: 8,
-            border: "1px solid var(--border)",
-            background: "#0f0819",
-            color: "var(--text)",
-            marginBottom: "0.75rem",
-          }}
-        >
-          {CATALOG.map((entry) => (
-            <option key={entry.mint} value={entry.mint}>
-              {entry.name} — {entry.mint.slice(0, 8)}…{owned[entry.mint] === false ? " (not owned)" : ""}
-            </option>
-          ))}
-        </select>
+        {!connected && (
+          <div className="hint-box">Connect your wallet above to see which NFTs you can list.</div>
+        )}
 
-        <label>Or paste mint address</label>
+        {connected && !pasteActive && (
+          <>
+            <label>Your wallet's NFTs</label>
+            <select
+              value={catalogMint}
+              onChange={(e) => setCatalogMint(e.target.value)}
+              disabled={checkingOwnership && !hasOwnershipData}
+              style={{
+                width: "100%",
+                padding: "0.55rem 0.7rem",
+                borderRadius: 8,
+                border: "1px solid var(--border)",
+                background: "#0f0819",
+                color: "var(--text)",
+                marginBottom: "0.5rem",
+              }}
+            >
+              {CATALOG.map((entry) => {
+                const isOwned = owned?.[entry.mint];
+                const label = !hasOwnershipData
+                  ? entry.name
+                  : isOwned
+                  ? `${entry.name} — in your wallet`
+                  : `${entry.name} — not in your wallet`;
+                return (
+                  <option key={entry.mint} value={entry.mint}>
+                    {label}
+                  </option>
+                );
+              })}
+            </select>
+
+            {checkingOwnership && (
+              <p className="sub" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <span className="spinner-dot" aria-hidden="true" /> Checking your wallet for these NFTs…
+              </p>
+            )}
+
+            {ownsNothingInCatalog && (
+              <div className="hint-box hint-box-warn">
+                None of the demo NFTs above are in this wallet. That's expected if you're using
+                your own wallet rather than the seeded demo one — paste the mint address of any
+                Devnet NFT you actually hold instead.
+              </div>
+            )}
+          </>
+        )}
+
+        <label style={{ marginTop: connected ? "0.9rem" : 0 }}>
+          Or paste a mint address you own
+        </label>
         <input
           type="text"
-          placeholder="Base58 PublicKey — any mint this wallet owns"
+          placeholder="Base58 mint address, e.g. 2SkyZ… — must be an NFT in this wallet"
           value={paste}
           onChange={(e) => setPaste(e.target.value)}
           disabled={!connected}
@@ -170,20 +227,33 @@ export default function ListCreate() {
           style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}
         />
         {pasteActive && !pasteInvalid && (
-          <p className="sub">Using pasted mint (overrides the catalog select).</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", margin: "0.4rem 0" }}>
+            {pastedEntry?.image && (
+              <img
+                src={pastedEntry.image}
+                alt={pastedEntry.name}
+                style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover", border: "1px solid var(--border)" }}
+              />
+            )}
+            <p className="sub" style={{ margin: 0 }}>
+              {pastedEntry && pastedEntry.name !== mint.slice(0, 8) + "…" ? pastedEntry.name + " — " : ""}
+              Using the pasted address instead of the dropdown above.{" "}
+              {hasOwnershipData && !checkingOwnership && (ownsSelected ? "Good — this wallet holds it." : "This wallet doesn't hold it yet.")}
+            </p>
+          </div>
         )}
         {pasteInvalid && (
           <p className="sub" style={{ color: "var(--danger)" }}>
-            Not a valid base58 PublicKey.
+            That doesn't look like a valid Devnet mint address.
           </p>
         )}
-        {connected && !pasteInvalid && !ownsSelected && (
+        {connected && !pasteInvalid && hasOwnershipData && !checkingOwnership && !ownsSelected && !ownsNothingInCatalog && (
           <p className="sub" style={{ color: "var(--danger)" }}>
-            This wallet doesn't hold that mint — list will be rejected on-chain (InvalidNft).
+            This wallet doesn't hold that NFT — pick one marked "in your wallet" instead.
           </p>
         )}
 
-        <label style={{ marginTop: "0.75rem" }}>Price (SOL)</label>
+        <label style={{ marginTop: "0.9rem" }}>Price (SOL)</label>
         <input
           type="number"
           min="0"
@@ -198,13 +268,13 @@ export default function ListCreate() {
         <div className="kv">
           <span>Seller</span>
           <span>{publicKey?.toBase58() ?? "—"}</span>
-          <span>Mint</span>
+          <span>Listing</span>
           <span>{mint || "—"}</span>
           <span>Price</span>
           <span>{price} SOL</span>
         </div>
         <button className="primary" disabled={!canSubmit} style={{ marginTop: "0.75rem" }} onClick={submit}>
-          {busy ? "Listing…" : "List NFT"}
+          {busy ? "Listing…" : checkingOwnership ? "Checking wallet…" : "List NFT"}
         </button>
         {status && <div className={"status " + status.kind}>{status.text}</div>}
       </div>

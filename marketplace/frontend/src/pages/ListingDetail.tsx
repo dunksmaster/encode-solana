@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
+import { resolveEntry } from "../lib/nftMeta";
 import {
   getProgram,
   sellerAta,
@@ -59,10 +60,7 @@ export default function ListingDetail() {
   }
 
   const current: ListingAccount = listing;
-  const entry = CATALOG.find((c) => c.mint === current.mint.toBase58()) ?? {
-    mint: current.mint.toBase58(),
-    name: current.mint.toBase58().slice(0, 8) + "…",
-  };
+  const entry = resolveEntry(current.mint.toBase58(), CATALOG);
   const isSeller = !!publicKey && current.seller.equals(publicKey);
   const priceSol = (Number(current.price) / 1e9).toString();
 
@@ -132,7 +130,13 @@ export default function ListingDetail() {
   return (
     <div>
       <div className="card listing-card" style={{ maxWidth: 320 }}>
-        <div className="media">no image (stub)</div>
+        <div className="media">
+          {entry.image ? (
+            <img src={entry.image} alt={entry.name} />
+          ) : (
+            <span className="monogram">{entry.name.slice(0, 1).toUpperCase()}</span>
+          )}
+        </div>
         <div className="name">{entry.name}</div>
         <div className="price">{priceSol} SOL</div>
         <div className="seller">{current.seller.toBase58()}</div>

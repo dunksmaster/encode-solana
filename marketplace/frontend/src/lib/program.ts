@@ -37,8 +37,9 @@ function errorText(err: unknown): string {
   return e?.error?.errorMessage || e?.error?.errorCode?.code || e?.message || String(err);
 }
 
+/** Covers both "stale blockhash rejected up front" and "expired waiting for confirmation". */
 export function isBlockhashNotFound(err: unknown): boolean {
-  return /blockhash not found/i.test(errorText(err));
+  return /blockhash not found|block height exceeded|has expired/i.test(errorText(err));
 }
 
 /** Re-fetch a blockhash and resend when Phantom / the RPC races on a stale one. */
@@ -101,8 +102,8 @@ export function friendlyError(err: any): string {
   }
   if (msg.includes("AccountNotInitialized")) return "Listing not found (already closed or never created).";
   if (msg.includes("already in use")) return "You already have an active listing for this mint.";
-  if (/blockhash not found/i.test(msg)) {
-    return "Devnet RPC dropped the blockhash after public-endpoint failover. Retry, or optionally set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
+  if (/blockhash not found|block height exceeded|has expired/i.test(msg)) {
+    return "The transaction's blockhash expired — usually because approving in Phantom took a bit too long, or the public Devnet RPC is slow. It automatically retries with a fresh blockhash; if you still see this, just retry, or optionally set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
   }
   if (/429|too many requests/i.test(msg)) {
     return "Devnet RPC rate-limited (429) after public-endpoint failover. Retry in a moment, or optionally set VITE_SOLANA_RPC and restart the frontend.";

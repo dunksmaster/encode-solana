@@ -4,6 +4,7 @@ import DevnetBadge from "./DevnetBadge";
 
 const NAV = [
   { to: "/", label: "Home" },
+  { to: "/create", label: "Create" },
   { to: "/list", label: "List" },
   { to: "/mine", label: "Mine" },
 ];

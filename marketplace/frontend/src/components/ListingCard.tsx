@@ -15,7 +15,13 @@ export default function ListingCard({
 }) {
   return (
     <Link to={"/listing/" + id} className="card listing-card" style={{ textDecoration: "none" }}>
-      <div className="media">no image (stub)</div>
+      <div className="media">
+        {entry.image ? (
+          <img src={entry.image} alt={entry.name} />
+        ) : (
+          <span className="monogram">{entry.name.slice(0, 1).toUpperCase()}</span>
+        )}
+      </div>
       <div className="name">{entry.name}</div>
       <div className="price">{priceSol} SOL</div>
       <div className="seller">{seller}</div>
