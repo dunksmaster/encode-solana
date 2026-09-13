@@ -9,6 +9,25 @@ My listings) lives in `frontend/` — scaffolded and wired to `list_nft`,
 `buy_nft`, `cancel_listing` (TICKET-3/4/5). Deployed program is now live on
 Devnet (TICKET-6, see Explorer proofs below).
 
+## For graders — quick start
+
+- **Cluster**: Devnet only (no localnet/mainnet needed to review this).
+- **Program ID**: `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2` — see
+  [Explorer proofs](#explorer-proofs) below for the deployed program and
+  one real transaction per instruction.
+- **Run the desk against Devnet:**
+  ```bash
+  cd marketplace/frontend
+  npm install
+  npm run dev
+  ```
+  Open the printed local URL, connect a **Devnet** Phantom wallet holding
+  SOL, and pick a mint you own from the Exercise 10 catalog (below) to
+  list, buy, or cancel. No local validator or program build needed — the
+  desk talks straight to the already-deployed Devnet program.
+- **Run the program's own tests** (optional, needs the WSL toolchain fixes
+  below): see [Localnet runbook](#localnet-runbook).
+
 ## Architecture
 
 ```text
@@ -86,6 +105,14 @@ buyer-ATA fix:
 
 Tests mint local NFT-like tokens. They do not need Exercise 10 mint
 authorities.
+
+**Test status**: 6/7 confirmed passing live (TICKET-2 run). The 7th
+(`wrong mint from buyer fails`) asserted a stale error code
+(`ConstraintHasOne`); commit `cef83d0` corrected it to the program's actual
+`ConstraintTokenMint`, but that fix has **not been re-run** in this
+environment since (would require rebuilding against the localnet keypair,
+which would move `declare_id!` off the live Devnet ID above — see the
+Program ID note). Re-run `npm test` locally before trusting 7/7.
 
 ## Devnet runbook
 

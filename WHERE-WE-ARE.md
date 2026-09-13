@@ -1,16 +1,18 @@
 # Encode Solana — where we are
 
-Last updated: 12 September 2026 (Europe/Budapest) — Devnet deploy + Explorer proofs
+Last updated: 13 September 2026 (Europe/Budapest) — capstone complete pending submit
 
 Dorian Kane. Encode Solana Developer Course (6 weeks, 10 builds + capstone, all on **devnet**).
 Work lives in WSL Ubuntu at `~/encode-solana`. **GitHub now has Weeks 1–5 + Week 6 program/frontend.**
 
-**Progress: ~93% of builds** (10/11), Week 6 capstone deployed to Devnet.
-Weeks 1–5 complete. **Week 6 official path is Option 2 — NFT Marketplace**:
-spec + plan done, Anchor program (7 tests, 6/7 passing locally — see
-`marketplace/README.md`), React/Phantom desk wired to list/buy/cancel, and
-now deployed live on Devnet with Explorer proofs. Quoted Escrow Desk in
-`capstone/` is a prior experiment.
+**Progress: capstone complete pending submit.** All 11 builds done. **Week 6
+Option 2 — NFT Marketplace**: spec + plan done, Anchor program (7 tests,
+6/7 confirmed passing live — 7th's fix is unverified, see
+`docs/capstone/CAPSTONE-SUBMIT-CHECKLIST.md`), React/Phantom desk wired to
+list/buy/cancel, deployed live on Devnet with real Explorer proofs.
+Remaining work before final hand-in is polish-level only — see Still
+missing below and the submit checklist. Quoted Escrow Desk in `capstone/`
+is a prior experiment.
 
 Main wallet: `5kyuXhe2qeRGvANAATZAG9n9nRZM4iyc768mcxrqcDDG`
 
@@ -79,16 +81,22 @@ Accounts, programs, PDAs, tokens, transaction lifecycle. No build.
   committed and no longer exists anywhere, so it was re-synced to a fresh
   keypair actually held on this machine — see `marketplace/README.md`)
 - Explorer proofs (program + sample list/buy/cancel txs): `marketplace/README.md`
-- 7 mocha tests, 6 passing locally (`marketplace/tests/marketplace.ts`);
-  1 pre-existing test asserts a stale expected error code, not yet fixed
+- 7 mocha tests: 6 confirmed passing live; the 7th's stale-error-code
+  assertion was corrected (commit `cef83d0`) but not re-run since (see
+  `docs/capstone/CAPSTONE-SUBMIT-CHECKLIST.md` for why)
+- Hand-in polish done: `docs/capstone/CAPSTONE-SUBMIT-CHECKLIST.md`
+  (Done / Missing / Risks against the constitution)
 - `capstone/` Quoted Escrow Desk stays as the pre-brief Idea A experiment
 
 ## Still missing
 
-1. Fix the one pre-existing failing test (`wrong mint from buyer fails`
-   expects `ConstraintHasOne`, program correctly returns `ConstraintTokenMint`)
-2. Capstone hand-in polish / final review pass (`docs/capstone/CAPSTONE-TICKETS.md` TICKET-7)
-3. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
+See `docs/capstone/CAPSTONE-SUBMIT-CHECKLIST.md` for the full list. Top
+items:
+
+1. Re-run `npm test` to confirm 7/7 (6/7 confirmed live so far), then
+   rebuild/redeploy Devnet again if `declare_id!` moved to the localnet
+   keypair in the process.
+2. Skill-process scaffold (optional): `docs/agents/` via `/setup-matt-pocock-skills` — see `SKILL_AUDIT_AND_GAP_ANALYSIS.md`
 
 ## Toolchain
 
