@@ -14,6 +14,7 @@ export type CatalogEntry = {
 export const COLLECTION = "DFqN7fj7pXJkdD7vEBTC8YU6CqDcC1b4YpoV6EUtGjUd";
 
 export const CATALOG: CatalogEntry[] = [
+  { mint: "2SkyZmpZZ8D7RttFpM2zBNJV8N38es1p1ZPJSAeW7PVY", name: "Devnet test NFT (owned — list this)" },
   { mint: "9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ", name: "Encode Member #1" },
   { mint: "YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ", name: "Encode Member #2" },
   { mint: "3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp", name: "Encode Member #3" },

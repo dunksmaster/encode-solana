@@ -67,6 +67,17 @@ export default function ListCreate() {
 
   async function submit() {
     if (!publicKey) return;
+    if (pasteInvalid) {
+      setStatus({ kind: "err", text: "Not a valid base58 PublicKey." });
+      return;
+    }
+    if (!ownsSelected) {
+      setStatus({
+        kind: "err",
+        text: "This wallet doesn't hold that mint — list would revert in Phantom (InvalidNft). Pick the Devnet test NFT or paste a mint you own.",
+      });
+      return;
+    }
     const program = getProgram(connection, wallet);
     if (!program) return;
 
@@ -105,13 +116,13 @@ export default function ListCreate() {
       <div className="card">
         <h3 style={{ marginTop: 0 }}>List an NFT</h3>
         <p className="sub">
-          Connect a wallet, then pick an Exercise 10 catalog mint <em>or paste any
-          Devnet mint address this wallet owns</em> (seeded / test mints are fine).
-          The program accepts any mint your ATA holds — the catalog is convenience
-          only.
+          Connect a wallet, then list the default <em>Devnet test NFT</em> (or another
+          catalog mint you own), <em>or paste any Devnet mint address this wallet
+          owns</em>. The program accepts any mint your ATA holds — do not list an
+          Exercise 10 member you don't hold (Phantom will revert).
         </p>
 
-        <label>Mint (Exercise 10 catalog)</label>
+        <label>Mint (catalog — default is the seeded Devnet test NFT)</label>
         <select
           value={catalogMint}
           onChange={(e) => setCatalogMint(e.target.value)}
