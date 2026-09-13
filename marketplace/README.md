@@ -11,22 +11,42 @@ Devnet (TICKET-6, see Explorer proofs below).
 
 ## For graders — quick start
 
-- **Cluster**: Devnet only (no localnet/mainnet needed to review this).
-- **Program ID**: `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2` — see
-  [Explorer proofs](#explorer-proofs) below for the deployed program and
-  one real transaction per instruction.
-- **Run the desk against Devnet:**
-  ```bash
-  cd marketplace/frontend
-  npm install
-  npm run dev
-  ```
-  Open the printed local URL, connect a **Devnet** Phantom wallet holding
-  SOL, and pick a mint you own from the Exercise 10 catalog (below) to
-  list, buy, or cancel. No local validator or program build needed — the
-  desk talks straight to the already-deployed Devnet program.
-- **Run the program's own tests** (optional, needs the WSL toolchain fixes
-  below): see [Localnet runbook](#localnet-runbook).
+**You do not need Superdesign, Figma, or any design file.** Those were used only while designing. The product UI is this repo's React desk.
+
+### 1) Run the UI against live Devnet
+
+```bash
+cd marketplace/frontend
+npm install
+npm run dev
+```
+
+Then:
+
+1. Open the printed URL (e.g. `http://localhost:5173`).
+2. In Phantom, switch network to **Devnet**.
+3. Connect the wallet (needs a little Devnet SOL).
+4. Use **Browse / List / Buy / My listings**. The app talks to the deployed program below — **no** `solana-test-validator`, **no** local `anchor build`.
+
+| Item | Value |
+| --- | --- |
+| Cluster | Devnet |
+| Program ID | `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2` |
+| Explorer | https://explorer.solana.com/address/DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2?cluster=devnet |
+
+### 2) If List is disabled for every mint
+
+The desk catalogs Exercise 10 collection members. Phantom must **already hold** that mint on Devnet to list it. That does **not** block grading: use the [Explorer proofs](#explorer-proofs) for real on-chain list / buy / cancel transactions.
+
+### 3) Optional — run on-chain mocha tests
+
+Needs a local validator + SBPFv3 toolchain. See [Localnet runbook](#localnet-runbook). Not required to review the Devnet demo.
+
+### 4) What "design" means in this repo
+
+- Superdesign canvas was a pre-code mock (local `.superdesign/`, not required to run).
+- Shipped look = `frontend/src/theme.css` + pages under `frontend/src/pages/`.
+
 
 ## Architecture
 
