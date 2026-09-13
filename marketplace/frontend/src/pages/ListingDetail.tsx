@@ -4,7 +4,16 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
-import { getProgram, sellerAta, buyerAta, vaultAta, friendlyError, type ListingAccount } from "../lib/program";
+import {
+  getProgram,
+  sellerAta,
+  buyerAta,
+  vaultAta,
+  friendlyError,
+  rpcWithBlockhashRetry,
+  RPC_SEND_OPTS,
+  type ListingAccount,
+} from "../lib/program";
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
 
@@ -64,19 +73,21 @@ export default function ListingDetail() {
     try {
       const listingKey = new PublicKey(id);
       const mintKey = current.mint;
-      const sig = await program.methods
-        .cancelListing()
-        .accounts({
-          seller: publicKey,
-          mint: mintKey,
-          listing: listingKey,
-          sellerAta: sellerAta(mintKey, publicKey),
-          vault: vaultAta(mintKey, listingKey),
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc({ commitment: "confirmed", preflightCommitment: "confirmed", maxRetries: 5 });
+      const sig = await rpcWithBlockhashRetry(() =>
+        program.methods
+          .cancelListing()
+          .accounts({
+            seller: publicKey,
+            mint: mintKey,
+            listing: listingKey,
+            sellerAta: sellerAta(mintKey, publicKey),
+            vault: vaultAta(mintKey, listingKey),
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(RPC_SEND_OPTS)
+      );
       setStatus({ kind: "ok", text: "Cancelled: " + sig.slice(0, 12) + "…" });
       await load();
     } catch (err) {
@@ -96,20 +107,22 @@ export default function ListingDetail() {
     try {
       const listingKey = new PublicKey(id);
       const mintKey = current.mint;
-      const sig = await program.methods
-        .buyNft()
-        .accounts({
-          buyer: publicKey,
-          seller: current.seller,
-          mint: mintKey,
-          listing: listingKey,
-          vault: vaultAta(mintKey, listingKey),
-          buyerAta: buyerAta(mintKey, publicKey),
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc({ commitment: "confirmed", preflightCommitment: "confirmed", maxRetries: 5 });
+      const sig = await rpcWithBlockhashRetry(() =>
+        program.methods
+          .buyNft()
+          .accounts({
+            buyer: publicKey,
+            seller: current.seller,
+            mint: mintKey,
+            listing: listingKey,
+            vault: vaultAta(mintKey, listingKey),
+            buyerAta: buyerAta(mintKey, publicKey),
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(RPC_SEND_OPTS)
+      );
       setStatus({ kind: "ok", text: "Bought: " + sig.slice(0, 12) + "…" });
       await load();
     } catch (err) {

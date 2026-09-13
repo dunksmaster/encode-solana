@@ -10,20 +10,22 @@ import ListCreate from "./pages/ListCreate";
 import ListingDetail from "./pages/ListingDetail";
 import Mine from "./pages/Mine";
 
-function resolveDevnetEndpoint(): string {
+function resolveEndpoint(): string {
   try {
     const override = import.meta.env.VITE_SOLANA_RPC;
     if (typeof override === "string" && override.trim()) {
       return override.trim();
     }
-    return "https://rpc.ankr.com/solana_devnet";
+    // Ankr and Omniatech public Devnet endpoints fail getLatestBlockhash
+    // (auth / 521). OnFinality's public Devnet RPC returns blockhashes.
+    return "https://solana-devnet.api.onfinality.io/public";
   } catch {
     return clusterApiUrl("devnet");
   }
 }
 
 export default function App() {
-  const endpoint = useMemo(() => resolveDevnetEndpoint(), []);
+  const endpoint = useMemo(() => resolveEndpoint(), []);
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
   const Conn = ConnectionProvider as any;
   const Wall = WalletProvider as any;

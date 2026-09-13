@@ -4,7 +4,15 @@ import { BN } from "@anchor-lang/core";
 import { PublicKey, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
-import { getProgram, listingPda, sellerAta, vaultAta, friendlyError } from "../lib/program";
+import {
+  getProgram,
+  listingPda,
+  sellerAta,
+  vaultAta,
+  friendlyError,
+  rpcWithBlockhashRetry,
+  RPC_SEND_OPTS,
+} from "../lib/program";
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
 
@@ -89,19 +97,21 @@ export default function ListCreate() {
       const vault = vaultAta(mintKey, listing);
       const priceLamports = Math.round(Number(price) * LAMPORTS_PER_SOL);
 
-      const sig = await program.methods
-        .listNft(new BN(priceLamports))
-        .accounts({
-          seller: publicKey,
-          mint: mintKey,
-          sellerAta: sellerAta(mintKey, publicKey),
-          listing,
-          vault,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc({ commitment: "confirmed", preflightCommitment: "confirmed", maxRetries: 5 });
+      const sig = await rpcWithBlockhashRetry(() =>
+        program.methods
+          .listNft(new BN(priceLamports))
+          .accounts({
+            seller: publicKey,
+            mint: mintKey,
+            sellerAta: sellerAta(mintKey, publicKey),
+            listing,
+            vault,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(RPC_SEND_OPTS)
+      );
 
       setStatus({ kind: "ok", text: "Listed: " + sig.slice(0, 12) + "…" });
     } catch (err) {

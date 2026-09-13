@@ -20,9 +20,40 @@ export function getProgram(connection: Connection, wallet: WalletContextState) {
   if (!wallet.publicKey || !wallet.signTransaction) return null;
   const provider = new AnchorProvider(connection, wallet as any, {
     commitment: "confirmed",
-    preflightCommitment: "confirmed",
+    preflightCommitment: "finalized",
   });
   return new Program(idl as any, provider);
+}
+
+export const RPC_SEND_OPTS = {
+  commitment: "confirmed" as const,
+  preflightCommitment: "finalized" as const,
+  maxRetries: 5,
+};
+
+function errorText(err: unknown): string {
+  const e = err as any;
+  return e?.error?.errorMessage || e?.error?.errorCode?.code || e?.message || String(err);
+}
+
+export function isBlockhashNotFound(err: unknown): boolean {
+  return /blockhash not found/i.test(errorText(err));
+}
+
+/** Re-fetch a blockhash and resend when Phantom / the RPC races on a stale one. */
+export async function rpcWithBlockhashRetry<T>(send: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await send();
+    } catch (err) {
+      lastError = err;
+      if (!isBlockhashNotFound(err) || i === attempts - 1) {
+        throw err;
+      }
+    }
+  }
+  throw lastError;
 }
 
 export function listingPda(seller: PublicKey, mint: PublicKey) {
@@ -46,11 +77,7 @@ export function buyerAta(mint: PublicKey, buyer: PublicKey) {
 }
 
 export function friendlyError(err: any): string {
-  const msg =
-    err?.error?.errorMessage ||
-    err?.error?.errorCode?.code ||
-    err?.message ||
-    String(err);
+  const msg = errorText(err);
   if (msg.includes("InvalidPrice")) return "Price must be greater than zero.";
   if (msg.includes("InvalidNft")) return "This mint isn't a 0-decimal NFT you hold, or the vault is empty.";
   if (msg.includes("ListingInactive")) return "This listing is no longer open.";
