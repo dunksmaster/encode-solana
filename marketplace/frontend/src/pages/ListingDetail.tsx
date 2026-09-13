@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
@@ -10,16 +10,16 @@ import {
   buyerAta,
   vaultAta,
   friendlyError,
-  rpcWithBlockhashRetry,
+  rpcSendWithFailover,
   RPC_SEND_OPTS,
   type ListingAccount,
 } from "../lib/program";
+import { withRpcFailover } from "../lib/rpc";
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
 
 export default function ListingDetail() {
   const { id } = useParams();
-  const { connection } = useConnection();
   const wallet = useWallet();
   const { connected, publicKey } = wallet;
 
@@ -28,18 +28,21 @@ export default function ListingDetail() {
   const [status, setStatus] = useState<Status>(null);
 
   const load = useCallback(async () => {
-    const program = getProgram(connection, wallet);
-    if (!program || !id) {
+    if (!wallet.publicKey || !wallet.signTransaction || !id) {
       setListing(null);
       return;
     }
     try {
-      const account = await (program.account as any).listing.fetch(new PublicKey(id));
+      const account = await withRpcFailover(async (connection) => {
+        const program = getProgram(connection, wallet);
+        if (!program) throw new Error("Wallet not connected.");
+        return (program.account as any).listing.fetch(new PublicKey(id));
+      });
       setListing(account);
     } catch {
       setListing("not-found");
     }
-  }, [connection, wallet, id]);
+  }, [wallet.connected, wallet.publicKey, id]);
 
   useEffect(() => {
     load();
@@ -65,15 +68,12 @@ export default function ListingDetail() {
 
   async function cancel() {
     if (!publicKey || !id) return;
-    const program = getProgram(connection, wallet);
-    if (!program) return;
-
     setBusy(true);
     setStatus({ kind: "pending", text: "Cancelling… waiting for wallet / confirmation" });
     try {
       const listingKey = new PublicKey(id);
       const mintKey = current.mint;
-      const sig = await rpcWithBlockhashRetry(() =>
+      const sig = await rpcSendWithFailover(wallet, (program) =>
         program.methods
           .cancelListing()
           .accounts({
@@ -99,15 +99,12 @@ export default function ListingDetail() {
 
   async function buy() {
     if (!publicKey || !id) return;
-    const program = getProgram(connection, wallet);
-    if (!program) return;
-
     setBusy(true);
     setStatus({ kind: "pending", text: "Buying… waiting for wallet / confirmation" });
     try {
       const listingKey = new PublicKey(id);
       const mintKey = current.mint;
-      const sig = await rpcWithBlockhashRetry(() =>
+      const sig = await rpcSendWithFailover(wallet, (program) =>
         program.methods
           .buyNft()
           .accounts({

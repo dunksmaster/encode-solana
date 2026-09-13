@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import type { PublicKey } from "@solana/web3.js";
 import ListingCard from "../components/ListingCard";
 import { CATALOG } from "../lib/catalog";
-import { getProgram } from "../lib/program";
+import { friendlyError, getProgram } from "../lib/program";
+import { withRpcFailover } from "../lib/rpc";
 
 type OpenListing = {
   pda: PublicKey;
@@ -13,7 +14,6 @@ type OpenListing = {
 };
 
 export default function Home() {
-  const { connection } = useConnection();
   const wallet = useWallet();
   const [listings, setListings] = useState<OpenListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,13 +21,16 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const program = getProgram(connection, wallet);
-      if (!program) {
+      if (!wallet.publicKey || !wallet.signTransaction) {
         setListings(null);
         return;
       }
       try {
-        const all = await (program.account as any).listing.all();
+        const all = await withRpcFailover(async (connection) => {
+          const program = getProgram(connection, wallet);
+          if (!program) throw new Error("Wallet not connected.");
+          return (program.account as any).listing.all();
+        });
         if (cancelled) return;
         setListings(
           all.map((entry: any) => ({
@@ -39,14 +42,14 @@ export default function Home() {
         );
         setError(null);
       } catch (err: any) {
-        if (!cancelled) setError(err?.message ?? String(err));
+        if (!cancelled) setError(friendlyError(err));
       }
     }
     load();
     return () => {
       cancelled = true;
     };
-  }, [connection, wallet.publicKey]);
+  }, [wallet.connected, wallet.publicKey]);
 
   return (
     <div>

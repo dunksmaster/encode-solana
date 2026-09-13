@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "@anchor-lang/core";
 import { PublicKey, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
 import { CATALOG } from "../lib/catalog";
 import {
-  getProgram,
   listingPda,
   sellerAta,
   vaultAta,
   friendlyError,
-  rpcWithBlockhashRetry,
+  rpcSendWithFailover,
   RPC_SEND_OPTS,
 } from "../lib/program";
+import { isFailoverError, withRpcFailover } from "../lib/rpc";
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
 
@@ -25,7 +25,6 @@ function parseMintAddress(value: string): PublicKey | null {
 }
 
 export default function ListCreate() {
-  const { connection } = useConnection();
   const wallet = useWallet();
   const { connected, publicKey } = wallet;
   const [catalogMint, setCatalogMint] = useState(CATALOG[0]?.mint ?? "");
@@ -52,23 +51,31 @@ export default function ListCreate() {
       }
       const mints = new Set(CATALOG.map((entry) => entry.mint));
       if (mint) mints.add(mint);
-      const result: Record<string, boolean> = {};
-      for (const candidate of mints) {
-        try {
-          const ata = sellerAta(new PublicKey(candidate), publicKey);
-          const acct = await getAccount(connection, ata);
-          result[candidate] = acct.amount >= 1n;
-        } catch {
-          result[candidate] = false;
-        }
+      try {
+        const result = await withRpcFailover(async (rpc) => {
+          const next: Record<string, boolean> = {};
+          for (const candidate of mints) {
+            try {
+              const ata = sellerAta(new PublicKey(candidate), publicKey);
+              const acct = await getAccount(rpc, ata);
+              next[candidate] = acct.amount >= 1n;
+            } catch (err) {
+              if (isFailoverError(err)) throw err;
+              next[candidate] = false;
+            }
+          }
+          return next;
+        });
+        if (!cancelled) setOwned(result);
+      } catch {
+        if (!cancelled) setOwned({});
       }
-      if (!cancelled) setOwned(result);
     }
     check();
     return () => {
       cancelled = true;
     };
-  }, [connection, publicKey, mint]);
+  }, [publicKey, mint]);
 
   const ownsSelected = !!owned[mint];
   const canSubmit = connected && !pasteInvalid && ownsSelected && Number(price) > 0 && !busy;
@@ -86,9 +93,6 @@ export default function ListCreate() {
       });
       return;
     }
-    const program = getProgram(connection, wallet);
-    if (!program) return;
-
     setBusy(true);
     setStatus({ kind: "pending", text: "Listing… waiting for wallet / confirmation" });
     try {
@@ -97,7 +101,7 @@ export default function ListCreate() {
       const vault = vaultAta(mintKey, listing);
       const priceLamports = Math.round(Number(price) * LAMPORTS_PER_SOL);
 
-      const sig = await rpcWithBlockhashRetry(() =>
+      const sig = await rpcSendWithFailover(wallet, (program) =>
         program.methods
           .listNft(new BN(priceLamports))
           .accounts({

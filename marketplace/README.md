@@ -4,10 +4,11 @@ Fixed-price NFT list / buy / cancel with a PDA vault. This directory is
 the Option 2 home. `escrow/` stays the Exercise 8 token-escrow reference.
 `capstone/` stays the prior Quoted Escrow Desk experiment.
 
-The **React desk** (Superdesign purple: Connect, Home, List, Detail/Buy,
-My listings) lives in `frontend/` — scaffolded and wired to `list_nft`,
-`buy_nft`, `cancel_listing` (TICKET-3/4/5). Deployed program is now live on
-Devnet (TICKET-6, see Explorer proofs below).
+The **React desk** (Connect, Home, List, Detail/Buy, My listings) lives in
+`frontend/` and is already wired to `list_nft`, `buy_nft`, `cancel_listing`.
+**Superdesign is not required** to run or grade this. Deployed program is live
+on Devnet (TICKET-6, see Explorer proofs below). Program ID:
+`DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2`.
 
 ## Architecture
 
@@ -129,7 +130,10 @@ Catalog dropdown (default first):
 - `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ` — Encode Member #2
 - `3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp` — Encode Member #3
 
-## Frontend local run
+## Frontend local run (graders / Dorian)
+
+No Superdesign. Vite + React in `frontend/`. Use WSL or any Linux/macOS
+shell with a current Node via nvm (`nvm install 20 && nvm use 20` is enough).
 
 ```bash
 cd marketplace/frontend
@@ -137,15 +141,31 @@ npm install
 npm run dev
 ```
 
-The desk defaults to official Devnet (`clusterApiUrl("devnet")` →
-`https://api.devnet.solana.com`) with `confirmed` commitment and `finalized`
-preflight so Phantom can see the blockhash. Public Ankr / Omniatech fail
-`getLatestBlockhash`; OnFinality's public URL rate-limits (HTTP 429 — apply
-an API key).
+In Phantom: Settings → Developer Settings → Change Network → **Devnet**.
+Connect that wallet in the header.
 
-If List / Buy / Cancel fail with **Blockhash not found** or **429 Too Many
-Requests**, set `VITE_SOLANA_RPC` to a private Helius or QuickNode Devnet key
-and restart Vite:
+**Demo**
+
+1. Connect Phantom (Devnet).
+2. **Home** shows open listings from program
+   `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2`.
+3. **List** — leave the default catalog mint (seeded Devnet test NFT
+   `2SkyZmpZZ8D7RttFpM2zBNJV8N38es1p1ZPJSAeW7PVY` if you hold it) or paste
+   any mint this wallet owns. Submit is blocked client-side if you don't
+   hold the mint (avoids Phantom `InvalidNft` simulation revert).
+4. Open the listing → **Buy** (another wallet) or **Cancel** (seller).
+
+**RPC — keyless by default.** `VITE_SOLANA_RPC` is used if set; otherwise
+the desk probes and rotates free public Devnet endpoints, always including
+`https://api.devnet.solana.com`. Commitment is `confirmed`; send/preflight
+is `finalized`. On `429` / `Too Many Requests` / `Blockhash not found` /
+fetch failure it switches endpoint and retries (Home listing fetch plus
+list / buy / cancel). You do **not** need a Helius or QuickNode key for
+the bootcamp path. Ankr / OnFinality public URLs are not used as defaults
+(they 401 / 429 without a paid key).
+
+If every public RPC flakes, copy `.env.example` to `.env.local` and restart
+Vite — private RPC is an optional enhancement only:
 
 ```bash
 # marketplace/frontend/.env.local

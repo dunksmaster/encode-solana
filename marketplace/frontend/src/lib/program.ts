@@ -4,6 +4,7 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import type { Connection } from "@solana/web3.js";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 import idl from "../idl/marketplace.json";
+import { withRpcFailover } from "./rpc";
 
 export const PROGRAM_ID = new PublicKey("DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2");
 
@@ -56,6 +57,20 @@ export async function rpcWithBlockhashRetry<T>(send: () => Promise<T>, attempts 
   throw lastError;
 }
 
+type WiredProgram = Exclude<ReturnType<typeof getProgram>, null>;
+
+/** list / buy / cancel: rotate public RPCs on 429 / blockhash / fetch failed, then retry the send. */
+export async function rpcSendWithFailover<T>(
+  wallet: WalletContextState,
+  send: (program: WiredProgram) => Promise<T>
+): Promise<T> {
+  return withRpcFailover(async (connection) => {
+    const program = getProgram(connection, wallet);
+    if (!program) throw new Error("Wallet not connected.");
+    return rpcWithBlockhashRetry(() => send(program));
+  });
+}
+
 export function listingPda(seller: PublicKey, mint: PublicKey) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from("listing"), seller.toBuffer(), mint.toBuffer()],
@@ -87,10 +102,10 @@ export function friendlyError(err: any): string {
   if (msg.includes("AccountNotInitialized")) return "Listing not found (already closed or never created).";
   if (msg.includes("already in use")) return "You already have an active listing for this mint.";
   if (/blockhash not found/i.test(msg)) {
-    return "Devnet RPC dropped the blockhash (public endpoints flake). Retry, or set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
+    return "Devnet RPC dropped the blockhash after public-endpoint failover. Retry, or optionally set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
   }
   if (/429|too many requests/i.test(msg)) {
-    return "Devnet RPC rate-limited (429). Set VITE_SOLANA_RPC to a private Helius or QuickNode key and restart the frontend.";
+    return "Devnet RPC rate-limited (429) after public-endpoint failover. Retry in a moment, or optionally set VITE_SOLANA_RPC and restart the frontend.";
   }
   return msg;
 }
