@@ -115,7 +115,12 @@ agave-install init stable
 reverting issue as the localnet runbook (they silently downgrade the active
 Solana release mid-command, corrupting the just-built SBPFv3 binary).
 
-Demo listings should use Exercise 10 members:
+**How to demo List:** on the List page, paste any Devnet mint the
+connected wallet owns (seeded / throwaway test mints are OK) **or** pick
+an Exercise 10 catalog member if you hold it. The program checks ATA
+ownership (`amount >= 1`), not the catalog.
+
+Exercise 10 members (convenience dropdown only):
 
 - `9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ`
 - `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ`
@@ -124,7 +129,7 @@ Demo listings should use Exercise 10 members:
 ## Trade-offs
 
 - **No on-chain collection gate** — tests and YAGNI. The later desk
-  defaults the catalog to Exercise 10.
+  defaults the catalog to Exercise 10; List also accepts a pasted mint.
 - **Listing account is closed** on buy/cancel so the same seller can
   re-list the same mint. `is_active` is still stored and checked.
 - **SOL transfer is direct** buyer → seller (no wSOL vault).
@@ -150,7 +155,7 @@ time) — it's a genuinely different signer from the seller, so the
 transaction exercises the real two-party buy path, it just wasn't
 independently pre-funded via faucet. Mints used for these proofs are
 throwaway 0-decimal test mints created for this deploy, not the Exercise 10
-collection — a real demo walkthrough should use the Exercise 10 members
-listed above.
+collection — a real demo walkthrough can paste any owned Devnet mint or
+use an Exercise 10 catalog member if the wallet holds it.
 
 Never commit private keys or `*-keypair.json`.

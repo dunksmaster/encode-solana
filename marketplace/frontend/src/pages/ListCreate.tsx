@@ -8,17 +8,33 @@ import { getProgram, listingPda, sellerAta, vaultAta, friendlyError } from "../l
 
 type Status = { kind: "ok" | "err" | "pending"; text: string } | null;
 
+function parseMintAddress(value: string): PublicKey | null {
+  try {
+    return new PublicKey(value);
+  } catch {
+    return null;
+  }
+}
+
 export default function ListCreate() {
   const { connection } = useConnection();
   const wallet = useWallet();
   const { connected, publicKey } = wallet;
-  const [mint, setMint] = useState(CATALOG[0]?.mint ?? "");
+  const [catalogMint, setCatalogMint] = useState(CATALOG[0]?.mint ?? "");
+  const [paste, setPaste] = useState("");
   const [price, setPrice] = useState("0.10");
   const [owned, setOwned] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status>(null);
 
-  // Real ownership check: does the connected wallet hold 1 of each catalog mint?
+  const trimmedPaste = paste.trim();
+  const pasteActive = trimmedPaste.length > 0;
+  const pastedKey = pasteActive ? parseMintAddress(trimmedPaste) : null;
+  const pasteInvalid = pasteActive && pastedKey === null;
+  const mint = pastedKey ? pastedKey.toBase58() : catalogMint;
+
+  // Real ownership check: does the connected wallet hold 1 of the catalog
+  // mints plus whatever mint is currently chosen (catalog or pasted)?
   useEffect(() => {
     let cancelled = false;
     async function check() {
@@ -26,14 +42,16 @@ export default function ListCreate() {
         setOwned({});
         return;
       }
+      const mints = new Set(CATALOG.map((entry) => entry.mint));
+      if (mint) mints.add(mint);
       const result: Record<string, boolean> = {};
-      for (const entry of CATALOG) {
+      for (const candidate of mints) {
         try {
-          const ata = sellerAta(new PublicKey(entry.mint), publicKey);
+          const ata = sellerAta(new PublicKey(candidate), publicKey);
           const acct = await getAccount(connection, ata);
-          result[entry.mint] = acct.amount >= 1n;
+          result[candidate] = acct.amount >= 1n;
         } catch {
-          result[entry.mint] = false;
+          result[candidate] = false;
         }
       }
       if (!cancelled) setOwned(result);
@@ -42,10 +60,10 @@ export default function ListCreate() {
     return () => {
       cancelled = true;
     };
-  }, [connection, publicKey]);
+  }, [connection, publicKey, mint]);
 
   const ownsSelected = !!owned[mint];
-  const canSubmit = connected && ownsSelected && Number(price) > 0 && !busy;
+  const canSubmit = connected && !pasteInvalid && ownsSelected && Number(price) > 0 && !busy;
 
   async function submit() {
     if (!publicKey) return;
@@ -86,12 +104,17 @@ export default function ListCreate() {
     <div>
       <div className="card">
         <h3 style={{ marginTop: 0 }}>List an NFT</h3>
-        {!connected && <p className="sub">Connect a wallet to list an NFT you own.</p>}
+        <p className="sub">
+          Connect a wallet, then pick an Exercise 10 catalog mint <em>or paste any
+          Devnet mint address this wallet owns</em> (seeded / test mints are fine).
+          The program accepts any mint your ATA holds — the catalog is convenience
+          only.
+        </p>
 
         <label>Mint (Exercise 10 catalog)</label>
         <select
-          value={mint}
-          onChange={(e) => setMint(e.target.value)}
+          value={catalogMint}
+          onChange={(e) => setCatalogMint(e.target.value)}
           disabled={!connected}
           style={{
             width: "100%",
@@ -109,13 +132,33 @@ export default function ListCreate() {
             </option>
           ))}
         </select>
-        {connected && !ownsSelected && (
+
+        <label>Or paste mint address</label>
+        <input
+          type="text"
+          placeholder="Base58 PublicKey — any mint this wallet owns"
+          value={paste}
+          onChange={(e) => setPaste(e.target.value)}
+          disabled={!connected}
+          spellCheck={false}
+          autoComplete="off"
+          style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}
+        />
+        {pasteActive && !pasteInvalid && (
+          <p className="sub">Using pasted mint (overrides the catalog select).</p>
+        )}
+        {pasteInvalid && (
+          <p className="sub" style={{ color: "var(--danger)" }}>
+            Not a valid base58 PublicKey.
+          </p>
+        )}
+        {connected && !pasteInvalid && !ownsSelected && (
           <p className="sub" style={{ color: "var(--danger)" }}>
             This wallet doesn't hold that mint — list will be rejected on-chain (InvalidNft).
           </p>
         )}
 
-        <label>Price (SOL)</label>
+        <label style={{ marginTop: "0.75rem" }}>Price (SOL)</label>
         <input
           type="number"
           min="0"
@@ -131,7 +174,7 @@ export default function ListCreate() {
           <span>Seller</span>
           <span>{publicKey?.toBase58() ?? "—"}</span>
           <span>Mint</span>
-          <span>{mint}</span>
+          <span>{mint || "—"}</span>
           <span>Price</span>
           <span>{price} SOL</span>
         </div>
