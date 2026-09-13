@@ -172,6 +172,18 @@ Vite — private RPC is an optional enhancement only:
 VITE_SOLANA_RPC=https://your-helius-or-quicknode-devnet-rpc
 ```
 
+**Smoke-test RPC + program read** (no wallet, no paid key). Resolves the
+same candidate list as the desk, probes `getLatestBlockhash("finalized")`
+on each, then `getProgramAccounts` on
+`DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2` (0 listings is OK). Retries
+once on 429 / blockhash by switching endpoint:
+
+```bash
+cd marketplace/frontend
+npm run smoke:rpc
+# or: node scripts/smoke-rpc.mjs
+```
+
 ## Trade-offs
 
 - **No on-chain collection gate** — tests and YAGNI. The later desk

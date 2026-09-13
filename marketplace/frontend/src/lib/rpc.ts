@@ -1,23 +1,10 @@
 import { Connection, type Commitment } from "@solana/web3.js";
+import { KEYLESS_DEVNET_RPCS } from "./rpc-endpoints.js";
+
+export { KEYLESS_DEVNET_RPCS };
 
 /** Matches ConnectionProvider + AnchorProvider. */
 export const COMMITMENT: Commitment = "confirmed";
-
-/**
- * Free, keyless Devnet HTTP endpoints verified in this environment with
- * `getLatestBlockhash` (commitment finalized) and `getGenesisHash`
- * (`EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG`).
- *
- * Dropped after probing (do not use as defaults):
- * - OnFinality public → HTTP 429 (API key required)
- * - Ankr public → Unauthorized (API key required)
- * - PublicNode / dRPC / Omniatech / Alchemy demo → 403 / 521 / 429
- */
-export const KEYLESS_DEVNET_RPCS = [
-  "https://api.devnet.solana.com",
-  "https://devnet.rpcpool.com",
-  "https://solana-devnet.gateway.tatum.io",
-] as const;
 
 export function envRpcOverride(): string | undefined {
   try {
