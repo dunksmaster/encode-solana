@@ -76,7 +76,7 @@ export default function ListingDetail() {
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
-        .rpc();
+        .rpc({ commitment: "confirmed", preflightCommitment: "confirmed", maxRetries: 5 });
       setStatus({ kind: "ok", text: "Cancelled: " + sig.slice(0, 12) + "…" });
       await load();
     } catch (err) {
@@ -109,7 +109,7 @@ export default function ListingDetail() {
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
-        .rpc();
+        .rpc({ commitment: "confirmed", preflightCommitment: "confirmed", maxRetries: 5 });
       setStatus({ kind: "ok", text: "Bought: " + sig.slice(0, 12) + "…" });
       await load();
     } catch (err) {

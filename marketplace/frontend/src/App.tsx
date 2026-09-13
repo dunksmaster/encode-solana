@@ -10,15 +10,27 @@ import ListCreate from "./pages/ListCreate";
 import ListingDetail from "./pages/ListingDetail";
 import Mine from "./pages/Mine";
 
+function resolveDevnetEndpoint(): string {
+  try {
+    const override = import.meta.env.VITE_SOLANA_RPC;
+    if (typeof override === "string" && override.trim()) {
+      return override.trim();
+    }
+    return "https://rpc.ankr.com/solana_devnet";
+  } catch {
+    return clusterApiUrl("devnet");
+  }
+}
+
 export default function App() {
-  const endpoint = useMemo(() => clusterApiUrl("devnet"), []);
+  const endpoint = useMemo(() => resolveDevnetEndpoint(), []);
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
   const Conn = ConnectionProvider as any;
   const Wall = WalletProvider as any;
   const Modal = WalletModalProvider as any;
 
   return (
-    <Conn endpoint={endpoint}>
+    <Conn endpoint={endpoint} config={{ commitment: "confirmed" }}>
       <Wall wallets={wallets} autoConnect>
         <Modal>
           <BrowserRouter>

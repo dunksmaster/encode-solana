@@ -101,7 +101,7 @@ export default function ListCreate() {
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
-        .rpc();
+        .rpc({ commitment: "confirmed", preflightCommitment: "confirmed", maxRetries: 5 });
 
       setStatus({ kind: "ok", text: "Listed: " + sig.slice(0, 12) + "…" });
     } catch (err) {

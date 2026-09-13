@@ -129,6 +129,25 @@ Catalog dropdown (default first):
 - `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ` — Encode Member #2
 - `3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp` — Encode Member #3
 
+## Frontend local run
+
+```bash
+cd marketplace/frontend
+npm install
+npm run dev
+```
+
+The desk defaults to Ankr's public Devnet RPC (`https://rpc.ankr.com/solana_devnet`)
+with `confirmed` commitment so Phantom's simulation and the app share a recent
+blockhash. If List / Buy / Cancel still fail with **Blockhash not found**, the
+public RPC is stale — set `VITE_SOLANA_RPC` to a dedicated Devnet endpoint and
+restart Vite:
+
+```bash
+# marketplace/frontend/.env.local
+VITE_SOLANA_RPC=https://your-devnet-rpc.example
+```
+
 ## Trade-offs
 
 - **No on-chain collection gate** — tests and YAGNI. The later desk

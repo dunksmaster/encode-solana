@@ -18,7 +18,10 @@ export type ListingAccount = {
 /** Mirrors voting/frontend's provider/program construction. IDL is the real `anchor idl build` output (target/idl/marketplace.json, copied in after the TICKET-6 Devnet deploy) — regenerate and re-copy if the program changes. */
 export function getProgram(connection: Connection, wallet: WalletContextState) {
   if (!wallet.publicKey || !wallet.signTransaction) return null;
-  const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
+  const provider = new AnchorProvider(connection, wallet as any, {
+    commitment: "confirmed",
+    preflightCommitment: "confirmed",
+  });
   return new Program(idl as any, provider);
 }
 
@@ -56,5 +59,8 @@ export function friendlyError(err: any): string {
   }
   if (msg.includes("AccountNotInitialized")) return "Listing not found (already closed or never created).";
   if (msg.includes("already in use")) return "You already have an active listing for this mint.";
+  if (/blockhash not found/i.test(msg)) {
+    return "Devnet RPC dropped the blockhash (public endpoints flake). Retry, or set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
+  }
   return msg;
 }
