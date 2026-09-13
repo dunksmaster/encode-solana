@@ -89,5 +89,8 @@ export function friendlyError(err: any): string {
   if (/blockhash not found/i.test(msg)) {
     return "Devnet RPC dropped the blockhash (public endpoints flake). Retry, or set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
   }
+  if (/429|too many requests/i.test(msg)) {
+    return "Devnet RPC rate-limited (429). Set VITE_SOLANA_RPC to a private Helius or QuickNode key and restart the frontend.";
+  }
   return msg;
 }

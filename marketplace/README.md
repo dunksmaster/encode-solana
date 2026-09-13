@@ -137,14 +137,15 @@ npm install
 npm run dev
 ```
 
-The desk defaults to OnFinality's public Devnet RPC
-(`https://solana-devnet.api.onfinality.io/public`) with `confirmed` commitment
-and `finalized` preflight so Phantom can see the blockhash. Public Ankr /
-Omniatech Devnet endpoints currently fail `getLatestBlockhash`. Official
-`https://api.devnet.solana.com` is the catch fallback via `clusterApiUrl("devnet")`.
+The desk defaults to official Devnet (`clusterApiUrl("devnet")` →
+`https://api.devnet.solana.com`) with `confirmed` commitment and `finalized`
+preflight so Phantom can see the blockhash. Public Ankr / Omniatech fail
+`getLatestBlockhash`; OnFinality's public URL rate-limits (HTTP 429 — apply
+an API key).
 
-If List / Buy / Cancel still fail with **Blockhash not found**, set
-`VITE_SOLANA_RPC` to a private Helius or QuickNode Devnet key and restart Vite:
+If List / Buy / Cancel fail with **Blockhash not found** or **429 Too Many
+Requests**, set `VITE_SOLANA_RPC` to a private Helius or QuickNode Devnet key
+and restart Vite:
 
 ```bash
 # marketplace/frontend/.env.local

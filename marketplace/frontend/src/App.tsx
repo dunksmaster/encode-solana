@@ -16,11 +16,9 @@ function resolveEndpoint(): string {
     if (typeof override === "string" && override.trim()) {
       return override.trim();
     }
-    // Ankr and Omniatech public Devnet endpoints fail getLatestBlockhash
-    // (auth / 521). OnFinality's public Devnet RPC returns blockhashes.
-    return "https://solana-devnet.api.onfinality.io/public";
-  } catch {
     return clusterApiUrl("devnet");
+  } catch {
+    return "https://api.devnet.solana.com";
   }
 }
 
