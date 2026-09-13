@@ -4,10 +4,11 @@ Fixed-price NFT list / buy / cancel with a PDA vault. This directory is
 the Option 2 home. `escrow/` stays the Exercise 8 token-escrow reference.
 `capstone/` stays the prior Quoted Escrow Desk experiment.
 
-The **React desk** (Superdesign purple: Connect, Home, List, Detail/Buy,
-My listings) lives in `frontend/` — scaffolded and wired to `list_nft`,
-`buy_nft`, `cancel_listing` (TICKET-3/4/5). Deployed program is now live on
-Devnet (TICKET-6, see Explorer proofs below).
+The **React desk** (Connect, Home, List, Detail/Buy, My listings) lives in
+`frontend/` and is already wired to `list_nft`, `buy_nft`, `cancel_listing`.
+**Superdesign is not required** to run or grade this. Deployed program is live
+on Devnet (TICKET-6, see Explorer proofs below). Program ID:
+`DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2`.
 
 ## For graders — quick start
 
@@ -162,16 +163,79 @@ agave-install init stable
 reverting issue as the localnet runbook (they silently downgrade the active
 Solana release mid-command, corrupting the just-built SBPFv3 binary).
 
-Demo listings should use Exercise 10 members:
+**How to demo List:** default catalog mint is the seeded Devnet test NFT
+`2SkyZmpZZ8D7RttFpM2zBNJV8N38es1p1ZPJSAeW7PVY` (list this). Or paste any
+Devnet mint the connected wallet owns. Do **not** list an Exercise 10
+member you don't hold — the program checks ATA ownership (`amount >= 1`),
+and Phantom will revert on `InvalidNft`. List refuses submit client-side
+in that case so the wallet is never opened.
 
-- `9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ`
-- `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ`
-- `3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp`
+Catalog dropdown (default first):
+
+- `2SkyZmpZZ8D7RttFpM2zBNJV8N38es1p1ZPJSAeW7PVY` — seeded Devnet test NFT (list this)
+- `9MJyuTGDjdTmFGueYCJMtuBrMYu4JRHMCEhLrke4XfrQ` — Encode Member #1
+- `YA936cqURpMGpZLNsWp9492B3DUwTUhFQ4hynEfKjUJ` — Encode Member #2
+- `3t7ao1ar14m8gU7n7EECfwgRWwoMEKLa3S8XNtCdMAEp` — Encode Member #3
+
+## Frontend local run (graders / Dorian)
+
+No Superdesign. Vite + React in `frontend/`. Use WSL or any Linux/macOS
+shell with a current Node via nvm (`nvm install 20 && nvm use 20` is enough).
+
+```bash
+cd marketplace/frontend
+npm install
+npm run dev
+```
+
+In Phantom: Settings → Developer Settings → Change Network → **Devnet**.
+Connect that wallet in the header.
+
+**Demo**
+
+1. Connect Phantom (Devnet).
+2. **Home** shows open listings from program
+   `DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2`.
+3. **List** — leave the default catalog mint (seeded Devnet test NFT
+   `2SkyZmpZZ8D7RttFpM2zBNJV8N38es1p1ZPJSAeW7PVY` if you hold it) or paste
+   any mint this wallet owns. Submit is blocked client-side if you don't
+   hold the mint (avoids Phantom `InvalidNft` simulation revert).
+4. Open the listing → **Buy** (another wallet) or **Cancel** (seller).
+
+**RPC — keyless by default.** `VITE_SOLANA_RPC` is used if set; otherwise
+the desk probes and rotates free public Devnet endpoints, always including
+`https://api.devnet.solana.com`. Commitment is `confirmed`; send/preflight
+is `finalized`. On `429` / `Too Many Requests` / `Blockhash not found` /
+fetch failure it switches endpoint and retries (Home listing fetch plus
+list / buy / cancel). You do **not** need a Helius or QuickNode key for
+the bootcamp path. Ankr / OnFinality public URLs are not used as defaults
+(they 401 / 429 without a paid key).
+
+If every public RPC flakes, copy `.env.example` to `.env.local` and restart
+Vite — private RPC is an optional enhancement only:
+
+```bash
+# marketplace/frontend/.env.local
+VITE_SOLANA_RPC=https://your-helius-or-quicknode-devnet-rpc
+```
+
+**Smoke-test RPC + program read** (no wallet, no paid key). Resolves the
+same candidate list as the desk, probes `getLatestBlockhash("finalized")`
+on each, then `getProgramAccounts` on
+`DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2` (0 listings is OK). Retries
+once on 429 / blockhash by switching endpoint:
+
+```bash
+cd marketplace/frontend
+npm run smoke:rpc
+# or: node scripts/smoke-rpc.mjs
+```
 
 ## Trade-offs
 
 - **No on-chain collection gate** — tests and YAGNI. The later desk
-  defaults the catalog to Exercise 10.
+  defaults the catalog to the seeded Devnet test NFT, then Exercise 10;
+  List also accepts a pasted mint.
 - **Listing account is closed** on buy/cancel so the same seller can
   re-list the same mint. `is_active` is still stored and checked.
 - **SOL transfer is direct** buyer → seller (no wSOL vault).
@@ -197,7 +261,7 @@ time) — it's a genuinely different signer from the seller, so the
 transaction exercises the real two-party buy path, it just wasn't
 independently pre-funded via faucet. Mints used for these proofs are
 throwaway 0-decimal test mints created for this deploy, not the Exercise 10
-collection — a real demo walkthrough should use the Exercise 10 members
-listed above.
+collection — a real demo walkthrough can paste any owned Devnet mint or
+use an Exercise 10 catalog member if the wallet holds it.
 
 Never commit private keys or `*-keypair.json`.

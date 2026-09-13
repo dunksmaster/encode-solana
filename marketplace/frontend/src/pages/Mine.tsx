@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import type { PublicKey } from "@solana/web3.js";
 import { CATALOG } from "../lib/catalog";
-import { getProgram } from "../lib/program";
+import { friendlyError, getProgram } from "../lib/program";
+import { withRpcFailover } from "../lib/rpc";
 
 type MyListing = {
   pda: PublicKey;
@@ -12,20 +13,22 @@ type MyListing = {
 };
 
 export default function Mine() {
-  const { connection } = useConnection();
   const wallet = useWallet();
   const { connected, publicKey } = wallet;
   const [listings, setListings] = useState<MyListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const program = getProgram(connection, wallet);
-    if (!program || !publicKey) {
+    if (!publicKey || !wallet.signTransaction) {
       setListings(null);
       return;
     }
     try {
-      const all = await (program.account as any).listing.all();
+      const all = await withRpcFailover(async (connection) => {
+        const program = getProgram(connection, wallet);
+        if (!program) throw new Error("Wallet not connected.");
+        return (program.account as any).listing.all();
+      });
       const mine = all.filter((entry: any) => entry.account.seller.equals(publicKey));
       setListings(
         mine.map((entry: any) => ({
@@ -36,9 +39,9 @@ export default function Mine() {
       );
       setError(null);
     } catch (err: any) {
-      setError(err?.message ?? String(err));
+      setError(friendlyError(err));
     }
-  }, [connection, wallet, publicKey]);
+  }, [connected, publicKey]);
 
   useEffect(() => {
     load();

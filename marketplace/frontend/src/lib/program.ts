@@ -4,6 +4,7 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import type { Connection } from "@solana/web3.js";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 import idl from "../idl/marketplace.json";
+import { withRpcFailover } from "./rpc";
 
 export const PROGRAM_ID = new PublicKey("DqBMwxFR31d8M9QqNkFjhAXq8JAND4Gy5r1KTu2S5Zi2");
 
@@ -18,8 +19,56 @@ export type ListingAccount = {
 /** Mirrors voting/frontend's provider/program construction. IDL is the real `anchor idl build` output (target/idl/marketplace.json, copied in after the TICKET-6 Devnet deploy) — regenerate and re-copy if the program changes. */
 export function getProgram(connection: Connection, wallet: WalletContextState) {
   if (!wallet.publicKey || !wallet.signTransaction) return null;
-  const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
+  const provider = new AnchorProvider(connection, wallet as any, {
+    commitment: "confirmed",
+    preflightCommitment: "finalized",
+  });
   return new Program(idl as any, provider);
+}
+
+export const RPC_SEND_OPTS = {
+  commitment: "confirmed" as const,
+  preflightCommitment: "finalized" as const,
+  maxRetries: 5,
+};
+
+function errorText(err: unknown): string {
+  const e = err as any;
+  return e?.error?.errorMessage || e?.error?.errorCode?.code || e?.message || String(err);
+}
+
+export function isBlockhashNotFound(err: unknown): boolean {
+  return /blockhash not found/i.test(errorText(err));
+}
+
+/** Re-fetch a blockhash and resend when Phantom / the RPC races on a stale one. */
+export async function rpcWithBlockhashRetry<T>(send: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await send();
+    } catch (err) {
+      lastError = err;
+      if (!isBlockhashNotFound(err) || i === attempts - 1) {
+        throw err;
+      }
+    }
+  }
+  throw lastError;
+}
+
+type WiredProgram = Exclude<ReturnType<typeof getProgram>, null>;
+
+/** list / buy / cancel: rotate public RPCs on 429 / blockhash / fetch failed, then retry the send. */
+export async function rpcSendWithFailover<T>(
+  wallet: WalletContextState,
+  send: (program: WiredProgram) => Promise<T>
+): Promise<T> {
+  return withRpcFailover(async (connection) => {
+    const program = getProgram(connection, wallet);
+    if (!program) throw new Error("Wallet not connected.");
+    return rpcWithBlockhashRetry(() => send(program));
+  });
 }
 
 export function listingPda(seller: PublicKey, mint: PublicKey) {
@@ -43,11 +92,7 @@ export function buyerAta(mint: PublicKey, buyer: PublicKey) {
 }
 
 export function friendlyError(err: any): string {
-  const msg =
-    err?.error?.errorMessage ||
-    err?.error?.errorCode?.code ||
-    err?.message ||
-    String(err);
+  const msg = errorText(err);
   if (msg.includes("InvalidPrice")) return "Price must be greater than zero.";
   if (msg.includes("InvalidNft")) return "This mint isn't a 0-decimal NFT you hold, or the vault is empty.";
   if (msg.includes("ListingInactive")) return "This listing is no longer open.";
@@ -56,5 +101,11 @@ export function friendlyError(err: any): string {
   }
   if (msg.includes("AccountNotInitialized")) return "Listing not found (already closed or never created).";
   if (msg.includes("already in use")) return "You already have an active listing for this mint.";
+  if (/blockhash not found/i.test(msg)) {
+    return "Devnet RPC dropped the blockhash after public-endpoint failover. Retry, or optionally set VITE_SOLANA_RPC to a dedicated Devnet RPC and restart the frontend.";
+  }
+  if (/429|too many requests/i.test(msg)) {
+    return "Devnet RPC rate-limited (429) after public-endpoint failover. Retry in a moment, or optionally set VITE_SOLANA_RPC and restart the frontend.";
+  }
   return msg;
 }
